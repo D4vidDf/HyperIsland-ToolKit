@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HyperIsland ToolKit"
 include(":hyperisland-kit")
+include(":demo")

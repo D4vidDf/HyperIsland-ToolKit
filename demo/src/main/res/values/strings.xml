@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HyperIsland demo</string>
+    <string name="compatibility_check">Compatibility Check</string>
+    <string name="hyperisland_compatibility">HyperIsland Compatibility</string>
+    <string name="this_device_is_not_supported">This device is NOT supported.</string>
+    <string name="this_device_is_supported">This device IS supported!</string>
+    <string name="channel_for_hyperisland_demo_notifications">Channel for HyperIsland demo notifications</string>
+    <string name="hyperisland_demos">HyperIsland Demos</string>
+</resources>

@@ -3,18 +3,17 @@ package com.d4viddf.hyperisland_kit.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// Top-level payload wrapper
+// ... (HyperIslandPayload, ParamV2, BaseInfo, SmallWindowInfo, ChatInfo, TimerInfo, HyperActionRef, ProgressInfo remain the same) ...
 @Serializable
 data class HyperIslandPayload(
     @SerialName("param_v2")
     val paramV2: ParamV2
 )
 
-// The main "param_v2" object
 @Serializable
 data class ParamV2(
     val protocol: Int = 3,
-    val business: String, // e.g., "company"
+    val business: String,
     val updatable: Boolean = true,
     val ticker: String,
     @SerialName("isShownNotification")
@@ -25,58 +24,66 @@ data class ParamV2(
     val smallWindowInfo: SmallWindowInfo? = null,
     @SerialName("param_island")
     val paramIsland: ParamIsland? = null,
-    val chatInfo: ChatInfo? = null, // From
-    val actions: List<HyperActionRef>? = null
+    val chatInfo: ChatInfo? = null,
+    val baseInfo: BaseInfo? = null,
+    val actions: List<HyperActionRef>? = null,
+    val progressInfo: ProgressInfo? = null
+)
+
+@Serializable
+data class BaseInfo(
+    val type: Int = 1,
+    val title: String,
+    val subTitle: String? = null,
+    val content: String,
+    @SerialName("picFunction")
+    val picFunction: String? = null
 )
 
 @Serializable
 data class SmallWindowInfo(
-    val targetPage: String // e.g., "com.example.projectname.MainActivity" [cite: 181]
+    val targetPage: String
 )
 
-// Corresponds to "IM图文组件:chatinfo" [cite: 3604]
 @Serializable
 data class ChatInfo(
     val type: Int = 1,
     val title: String,
-    val content: String? = null, // Note: Set to null if using timerInfo [cite: 2448]
+    val content: String? = null,
     @SerialName("picFunction")
-    val picFunction: String? = null, // e.g., "miui.focus.pic_imageText"
+    val picFunction: String? = null,
     val actions: List<HyperActionRef>? = null,
     val timerInfo: TimerInfo? = null
 )
 
-// Corresponds to "timerInfo" sub-object [cite: 3609]
 @Serializable
 data class TimerInfo(
     @SerialName("timerType")
-    val timerType: Int, // 1 for count-up, -1 for count-down
+    val timerType: Int,
     @SerialName("timerWhen")
-    val timerWhen: Long, // Target time for countdown, current time for count-up [cite: 114, 126]
+    val timerWhen: Long,
     @SerialName("timerTotal")
-    val timerTotal: Long, // Start time (System.currentTimeMillis())
+    val timerTotal: Long,
     @SerialName("timerSystemCurrent")
-    val timerSystemCurrent: Long // System.currentTimeMillis()
+    val timerSystemCurrent: Long
 )
 
-// Represents an ACTION reference in the JSON [cite: 3697, 3704]
-// This just points to an action in the bundle by its key
 @Serializable
 data class HyperActionRef(
-    val type: Int, // 1 = standard, 2 = progress [cite: 191, 198]
-    val action: String, // The KEY, e.g., "miui.focus.action.[function_name]"
+    val type: Int,
+    val action: String,
     val progressInfo: ProgressInfo? = null,
-    val actionTitle: String? = null, // For standard buttons [cite: 204]
+    val actionTitle: String? = null,
     @SerialName("actionIntent")
-    val actionIntent: String? = null // Some templates use this for the KEY
+    val actionIntent: String? = null
 )
 
-// Corresponds to "进度组件2:progressInfo" [cite: 3677]
+// This is for LINEAR progress (ParamV2) or BUTTON progress (HyperActionRef)
 @Serializable
 data class ProgressInfo(
-    val progress: Int, // 0-100
+    val progress: Int,
     @SerialName("colorProgress")
-    val colorProgress: String? = null // e.g., "#FF8514"
+    val colorProgress: String? = null
 )
 
 // --- Island States (Summary/Expanded) ---
@@ -88,19 +95,21 @@ data class ParamIsland(
     @SerialName("bigIslandArea")
     val bigIslandArea: BigIslandArea? = null,
     @SerialName("smallIslandArea")
-    val smallIslandArea: SmallIslandArea? = null // This defines the summary "A/B" state [cite: 3881]
+    val smallIslandArea: SmallIslandArea? = null
 )
 
+// --- THIS CLASS IS MODIFIED ---
 @Serializable
 data class BigIslandArea(
+    @SerialName("imageTextInfoLeft")
+    val imageTextInfoLeft: ImageTextInfoLeft? = null,
     @SerialName("sameWidthDigitInfo")
     val sameWidthDigitInfo: SameWidthDigitInfo? = null,
-    @SerialName("imageTextInfoLeft")
-    val imageTextInfoLeft: ImageTextInfoLeft? = null
-    // Add other components from "焦点通知/岛(展开态)" [cite: 2537] as needed
+    // --- MOVED progressTextInfo HERE ---
+    @SerialName("progressTextInfo")
+    val progressTextInfo: ProgressTextInfo? = null // For circular progress
 )
 
-// Corresponds to "等宽数字文本组件" (e.g., countdown) [cite: 4193]
 @Serializable
 data class SameWidthDigitInfo(
     val timerInfo: TimerInfo,
@@ -110,20 +119,51 @@ data class SameWidthDigitInfo(
 
 // --- A/B Zone Components for Summary State ---
 
-// "Small Island" or Summary state [cite: 4166]
+// --- THIS CLASS IS MODIFIED ---
 @Serializable
 data class SmallIslandArea(
-    // A-Zone [cite: 4180]
     @SerialName("imageTextInfoLeft")
     val imageTextInfoLeft: ImageTextInfoLeft? = null,
-    // B-Zone [cite: 4183]
     @SerialName("imageTextInfoRight")
     val imageTextInfoRight: ImageTextInfoRight? = null,
-    // Used for simple icon-only small island [cite: 4198]
+    // --- ADDED THIS based on docs  ---
+    @SerialName("combinePicInfo")
+    val combinePicInfo: CombinePicInfo? = null,
     val picInfo: PicInfo? = null
 )
 
-// A-Zone: "图文组件1:imageTextInfoLeft" [cite: 4180]
+// --- ADDED THIS NEW DATA CLASS ---
+// For small island circular progress
+@Serializable
+data class CombinePicInfo(
+    val picInfo: PicInfo,
+    @SerialName("progressInfo")
+    val progressInfo: CircularProgressInfo
+)
+
+// --- ADDED THIS NEW DATA CLASS ---
+@Serializable
+data class CircularProgressInfo(
+    val progress: Int,
+    @SerialName("colorReach")
+    val colorReach: String? = null,
+    @SerialName("colorUnReach")
+    val colorUnReach: String? = null,
+    @SerialName("isCCW")
+    val isCCW: Boolean = false
+)
+
+// --- THIS CLASS IS MODIFIED ---
+// For big island circular progress [cite: 30-39]
+@Serializable
+data class ProgressTextInfo(
+    // --- USES CircularProgressInfo ---
+    @SerialName("progressInfo")
+    val progressInfo: CircularProgressInfo,
+    val textInfo: TextInfo? = null
+)
+
+// ... (ImageTextInfoLeft, ImageTextInfoRight, PicInfo, TextInfo remain the same) ...
 @Serializable
 data class ImageTextInfoLeft(
     val type: Int = 1,
@@ -131,7 +171,6 @@ data class ImageTextInfoLeft(
     val textInfo: TextInfo? = null
 )
 
-// B-Zone: "图文组件2:imageTextInfoRight" [cite: 4183]
 @Serializable
 data class ImageTextInfoRight(
     val type: Int = 2,
@@ -139,19 +178,17 @@ data class ImageTextInfoRight(
     val textInfo: TextInfo? = null
 )
 
-// Generic PicInfo [cite: 4198]
 @Serializable
 data class PicInfo(
-    val type: Int = 1, // 1 = static icon
-    val pic: String // The KEY, e.g., "miui.focus.pic_imageText"
+    val type: Int = 1,
+    val pic: String
 )
 
-// Generic TextInfo [cite: 4180]
 @Serializable
 data class TextInfo(
     val title: String,
     val content: String? = null,
     @SerialName("showHighlightColor")
     val showHighlightColor: Boolean = false,
-    val narrowFont: Boolean? = null // For "窄字体" [cite: 3922]
+    val narrowFont: Boolean? = null
 )
