@@ -19,7 +19,7 @@ A simple, fluent Kotlin builder library for creating notifications on Xiaomi's H
 ```kotlin
 dependencies {  
      
-    implementation("com.github.d4viddf.hyperisland-kit:hyperisland_kit:0.1.1")  
+    implementation("io.github.d4viddf.hyperisland-kit:hyperisland_kit:0.1.1")  
 }
 ```
 ## **How to Use**
