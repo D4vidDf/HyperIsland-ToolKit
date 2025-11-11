@@ -10,13 +10,13 @@ import android.graphics.drawable.Icon
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.d4viddf.hyperisland_kit.HyperAction
-import com.d4viddf.hyperisland_kit.HyperIslandNotification
-import com.d4viddf.hyperisland_kit.HyperPicture
-import com.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
-import com.d4viddf.hyperisland_kit.models.PicInfo
-import com.d4viddf.hyperisland_kit.models.TextInfo
-import com.d4viddf.hyperisland_kit.models.TimerInfo
+import io.github.d4viddf.hyperisland_kit.HyperAction
+import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
+import io.github.d4viddf.hyperisland_kit.models.PicInfo
+import io.github.d4viddf.hyperisland_kit.models.TextInfo
+import io.github.d4viddf.hyperisland_kit.models.TimerInfo
 import java.util.concurrent.TimeUnit
 
 // ... (keys are the same) ...
