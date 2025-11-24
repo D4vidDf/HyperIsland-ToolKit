@@ -1,5 +1,5 @@
 # HyperIsland Kit 🏝️
-<img alt="Version 0.1.2" src="https://img.shields.io/badge/version-0.1.2-blue"/>
+<img alt="Version 0.1.2" src="https://img.shields.io/badge/version-0.2.0-blue"/>
 
 A simple, fluent Kotlin builder for creating notifications on Xiaomi's HyperIsland.
 
@@ -43,7 +43,7 @@ The library is available on **Maven Central**.
 2.  Add the dependency to your app-level `build.gradle.kts` file:
 ```gradle
 dependencies {
-    implementation("io.github.d4viddf:hyperisland-kit:0.1.2")
+    implementation("io.github.d4viddf:hyperisland-kit:0.2.0")
 }
 ```
 ## License

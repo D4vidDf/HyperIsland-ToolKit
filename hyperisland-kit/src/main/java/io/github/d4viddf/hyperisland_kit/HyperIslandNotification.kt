@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
@@ -93,6 +94,14 @@ data class HyperPicture(
     constructor(key: String, context: Context, drawableRes: Int) : this(
         key = key,
         icon = Icon.createWithResource(context, drawableRes)
+    )
+    /**
+     * Secondary constructor to create a [HyperPicture] from a [Bitmap].
+     * Use this for dynamic images (e.g., downloaded from the web).
+     */
+    constructor(key: String, bitmap: Bitmap) : this(
+        key = key,
+        icon = Icon.createWithBitmap(bitmap)
     )
 }
 
