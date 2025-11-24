@@ -53,6 +53,8 @@ data class ParamIsland(
 data class BigIslandArea(
     @SerialName("imageTextInfoLeft")
     val imageTextInfoLeft: ImageTextInfoLeft? = null,
+    @SerialName("imageTextInfoRight")
+    val imageTextInfoRight: ImageTextInfoRight? = null,
     @SerialName("sameWidthDigitInfo")
     val sameWidthDigitInfo: SameWidthDigitInfo? = null,
     @SerialName("progressTextInfo")

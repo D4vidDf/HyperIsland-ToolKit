@@ -27,7 +27,7 @@ data class HyperAction(
     val title: CharSequence?,
     val icon: Icon?, // Null for text-only buttons
     val pendingIntent: PendingIntent,
-    val actionIntentType: Int,
+    val actionIntentType: Int, // 1=Activity, 2=Broadcast
     val isProgressButton: Boolean = false,
     val progress: Int = 0,
     val progressColor: String? = null,
@@ -90,14 +90,16 @@ data class HyperPicture(
 ) {
     /**
      * Secondary constructor to create a [HyperPicture] from a drawable resource ID.
+     * Use this for static resources.
      */
     constructor(key: String, context: Context, drawableRes: Int) : this(
         key = key,
         icon = Icon.createWithResource(context, drawableRes)
     )
+
     /**
      * Secondary constructor to create a [HyperPicture] from a [Bitmap].
-     * Use this for dynamic images (e.g., downloaded from the web).
+     * Use this for dynamic images (e.g. generated or downloaded).
      */
     constructor(key: String, bitmap: Bitmap) : this(
         key = key,
@@ -159,7 +161,7 @@ class HyperIslandNotification private constructor(
         timer: TimerInfo? = null,
         actionKeys: List<String>? = null
     ) = apply {
-        // Build "Reference" objects for the panel
+        // Use HyperActionRef (Reference) to ensure visual properties are passed
         val actionRefs = actionKeys?.mapNotNull { key ->
             actions.firstOrNull { it.key == key }?.let { action ->
                 action.toActionRef(isFullDefinition = false)
@@ -187,7 +189,7 @@ class HyperIslandNotification private constructor(
         type: Int = 1,
         actionKeys: List<String>? = null
     ) = apply {
-        // Build "Reference" objects for the panel
+        // Use HyperActionRef (Reference) to ensure visual properties are passed
         val actionRefs = actionKeys?.mapNotNull { key ->
             actions.firstOrNull { it.key == key }?.let { action ->
                 action.toActionRef(isFullDefinition = false)
@@ -205,49 +207,81 @@ class HyperIslandNotification private constructor(
         this.chatInfo = null
     }
 
-    // ... (All `setBigIsland...` and `setSmallIsland...` methods are unchanged) ...
-
     fun setSmallIsland(aZone: ImageTextInfoLeft, bZone: ImageTextInfoRight?) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(imageTextInfoLeft = aZone, imageTextInfoRight = bZone))
     }
+
     fun setSmallIslandIcon(picKey: String) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(picInfo = PicInfo(type = 1, pic = picKey)))
     }
+
     fun setSmallIslandCircularProgress(pictureKey: String, progress: Int, color: String? = null, isCCW: Boolean = false) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val progressComponent = CombinePicInfo(picInfo = PicInfo(type = 1, pic = pictureKey), progressInfo = CircularProgressInfo(progress = progress, colorReach = color, isCCW = isCCW))
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(combinePicInfo = progressComponent))
     }
-    fun setBigIslandInfo(info: ImageTextInfoLeft) = apply {
+
+    /**
+     * Sets the expanded island (Big Island) content.
+     * Supports both Left and Right content areas.
+     */
+    fun setBigIslandInfo(
+        left: ImageTextInfoLeft? = null,
+        right: ImageTextInfoRight? = null,
+        actionKeys: List<String>? = null
+    ) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = info))
+
+        // BigIsland typically uses simple refs, relying on the dictionary
+        val actionRefs = actionKeys?.map { key ->
+            SimpleActionRef(action = ACTION_PREFIX + key)
+        }?.ifEmpty { null }
+
+        this.paramIsland = this.paramIsland?.copy(
+            islandProperty = 1,
+            bigIslandArea = BigIslandArea(
+                imageTextInfoLeft = left,
+                imageTextInfoRight = right,
+                sameWidthDigitInfo = null,
+                actions = actionRefs
+            )
+        )
     }
+
+    // Overload for simple left-only usage
+    fun setBigIslandInfo(info: ImageTextInfoLeft) = setBigIslandInfo(left = info)
+
     fun setBigIslandProgressCircle(pictureKey: String, title: String, progress: Int, color: String? = null, isCCW: Boolean = false) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = TextInfo(title = title, content = null))
         val progressComponent = ProgressTextInfo(progressInfo = CircularProgressInfo(progress = progress, colorReach = color, isCCW = isCCW), textInfo = null)
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, progressTextInfo = progressComponent))
     }
+
     fun setBigIslandCountdown(countdownTime: Long, pictureKey: String) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val timerInfo = TimerInfo(-1, countdownTime, System.currentTimeMillis(), System.currentTimeMillis())
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = null)
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo)))
     }
+
     fun setBigIslandCountUp(startTime: Long, pictureKey: String) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val timerInfo = TimerInfo(1, startTime, startTime, System.currentTimeMillis())
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = null)
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo)))
     }
+
     fun setProgressBar(progress: Int, color: String? = null) = apply {
         this.progressBar = ProgressInfo(progress, color)
     }
+
     fun addAction(action: HyperAction) = apply {
         this.actions.add(action)
     }
+
     fun addPicture(picture: HyperPicture) = apply {
         this.pictures.add(picture)
     }
@@ -278,7 +312,7 @@ class HyperIslandNotification private constructor(
             chatInfo = this.chatInfo,
             baseInfo = this.baseInfo,
             paramIsland = this.paramIsland,
-            // --- ADDED BACK: Top-level Dictionary of full definitions ---
+            // Top-level Dictionary of full definitions
             actions = this.actions.map { it.toActionRef(true) }.ifEmpty { null },
             progressInfo = this.progressBar
         )
