@@ -15,28 +15,48 @@ data class ParamV2(
     val business: String,
     val updatable: Boolean = true,
     val ticker: String,
-
-    // --- NEW FIELDS ---
     @SerialName("timeout")
-    val timeout: Long? = null, // Duration in ms before hiding (optional)
-
+    val timeout: Long? = null,
     @SerialName("enableFloat")
-    val enableFloat: Boolean = true, // Controls if the island pops up floating
-
+    val enableFloat: Boolean = true,
     @SerialName("isShownNotification")
-    val isShownNotification: Boolean = true, // Controls if shown in notification shade
-
+    val isShownNotification: Boolean = true,
     @SerialName("islandFirstFloat")
-    val islandFirstFloat: Boolean = true, // Legacy/Alternative float control
-
+    val islandFirstFloat: Boolean = true,
     @SerialName("smallWindowInfo")
     val smallWindowInfo: SmallWindowInfo? = null,
     @SerialName("param_island")
     val paramIsland: ParamIsland? = null,
     val chatInfo: ChatInfo? = null,
     val baseInfo: BaseInfo? = null,
-    val progressInfo: ProgressInfo? = null
+    val actions: List<HyperActionRef>? = null,
+    val progressInfo: ProgressInfo? = null,
+
+    // --- NEW FIELDS ---
+    val hintInfo: HintInfo? = null,
+    val stepInfo: StepInfo? = null,
+    val multiProgressInfo: MultiProgressInfo? = null,
 )
+
+// --- NEW: Hint Info (Top Hint) ---
+@Serializable
+data class HintInfo(
+    val type: Int = 1,
+    val title: String,
+    val content: String? = null,
+    @SerialName("actionInfo")
+    val actionInfo: SimpleActionRef? = null // Reuse SimpleActionRef {"action": "..."}
+)
+
+// --- NEW: Step Info (Segmented Progress) ---
+@Serializable
+data class StepInfo(
+    val currentStep: Int, // 1-based index
+    val totalStep: Int,
+    @SerialName("activeColor")
+    val activeColor: String? = null
+)
+
 
 
 @Serializable
@@ -44,7 +64,7 @@ data class SmallWindowInfo(
     val targetPage: String
 )
 
-// --- Island States (Summary/Expanded) ---
+// --- Island States ---
 
 @Serializable
 data class ParamIsland(
