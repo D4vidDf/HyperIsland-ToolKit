@@ -11,5 +11,7 @@ data class BaseInfo(
     val content: String,
     @SerialName("picFunction")
     val picFunction: String? = null,
+    @SerialName("colorTitle") // Added support for title color
+    val colorTitle: String? = null,
     val actions: List<HyperActionRef>? = null
 )

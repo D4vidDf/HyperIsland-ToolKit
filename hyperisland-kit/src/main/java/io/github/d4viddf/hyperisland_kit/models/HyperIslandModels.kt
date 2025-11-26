@@ -15,6 +15,10 @@ data class ParamV2(
     val business: String,
     val updatable: Boolean = true,
     val ticker: String,
+    @SerialName("timeout")
+    val timeout: Long? = null,
+    @SerialName("enableFloat")
+    val enableFloat: Boolean = true,
     @SerialName("isShownNotification")
     val isShownNotification: Boolean = true,
     @SerialName("islandFirstFloat")
@@ -25,10 +29,34 @@ data class ParamV2(
     val paramIsland: ParamIsland? = null,
     val chatInfo: ChatInfo? = null,
     val baseInfo: BaseInfo? = null,
-    // --- ADDED BACK: Top-level actions dictionary ---
     val actions: List<HyperActionRef>? = null,
-    val progressInfo: ProgressInfo? = null
+    val progressInfo: ProgressInfo? = null,
+
+    // --- NEW FIELDS ---
+    val hintInfo: HintInfo? = null,
+    val stepInfo: StepInfo? = null,
+    val multiProgressInfo: MultiProgressInfo? = null,
 )
+
+// --- NEW: Hint Info (Top Hint) ---
+@Serializable
+data class HintInfo(
+    val type: Int = 1,
+    val title: String,
+    val content: String? = null,
+    @SerialName("actionInfo")
+    val actionInfo: SimpleActionRef? = null // Reuse SimpleActionRef {"action": "..."}
+)
+
+// --- NEW: Step Info (Segmented Progress) ---
+@Serializable
+data class StepInfo(
+    val currentStep: Int, // 1-based index
+    val totalStep: Int,
+    @SerialName("activeColor")
+    val activeColor: String? = null
+)
+
 
 
 @Serializable
@@ -36,8 +64,7 @@ data class SmallWindowInfo(
     val targetPage: String
 )
 
-
-// --- Island States (Summary/Expanded) ---
+// --- Island States ---
 
 @Serializable
 data class ParamIsland(
@@ -59,7 +86,6 @@ data class BigIslandArea(
     val sameWidthDigitInfo: SameWidthDigitInfo? = null,
     @SerialName("progressTextInfo")
     val progressTextInfo: ProgressTextInfo? = null,
-    // BigIsland usually takes simple refs, but keeping this flexible
     val actions: List<SimpleActionRef>? = null
 )
 

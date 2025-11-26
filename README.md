@@ -43,7 +43,7 @@ The library is available on **Maven Central**.
 2.  Add the dependency to your app-level `build.gradle.kts` file:
 ```gradle
 dependencies {
-    implementation("io.github.d4viddf:hyperisland-kit:0.2.0")
+    implementation("io.github.d4viddf:hyperisland_kit:0.3.0")
 }
 ```
 ## License
