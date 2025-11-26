@@ -14,28 +14,21 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import androidx.core.net.toUri
 
-/**
- * The prefix required by the Xiaomi framework for all action keys.
- */
 private const val ACTION_PREFIX = "miui.focus.action_"
 
-/**
- * Represents a single clickable action in a HyperIsland notification.
- */
 data class HyperAction(
     val key: String,
     val title: CharSequence?,
-    val icon: Icon?, // Null for text-only buttons
+    val icon: Icon?,
     val pendingIntent: PendingIntent,
     val actionIntentType: Int, // 1=Activity, 2=Broadcast
     val isProgressButton: Boolean = false,
     val progress: Int = 0,
     val progressColor: String? = null,
-    val actionBgColor: String? = null
+    val actionBgColor: String? = null,
+    val isCCW: Boolean = false,
+    val colorReach: String? = null
 ) {
-    /**
-     * Secondary constructor for an ICON + TEXT button
-     */
     constructor(
         key: String,
         title: CharSequence?,
@@ -46,7 +39,9 @@ data class HyperAction(
         isProgressButton: Boolean = false,
         progress: Int = 0,
         progressColor: String? = null,
-        actionBgColor: String? = null
+        actionBgColor: String? = null,
+        isCCW: Boolean = false,
+        colorReach: String? = null
     ) : this(
         key = key,
         title = title,
@@ -56,12 +51,37 @@ data class HyperAction(
         isProgressButton = isProgressButton,
         progress = progress,
         progressColor = progressColor,
-        actionBgColor = actionBgColor
+        actionBgColor = actionBgColor,
+        isCCW = isCCW,
+        colorReach = colorReach
     )
 
-    /**
-     * Secondary constructor for a TEXT-ONLY button.
-     */
+    constructor(
+        key: String,
+        title: CharSequence?,
+        bitmap: Bitmap,
+        pendingIntent: PendingIntent,
+        actionIntentType: Int,
+        isProgressButton: Boolean = false,
+        progress: Int = 0,
+        progressColor: String? = null,
+        actionBgColor: String? = null,
+        isCCW: Boolean = false,
+        colorReach: String? = null
+    ) : this(
+        key = key,
+        title = title,
+        icon = Icon.createWithBitmap(bitmap),
+        pendingIntent = pendingIntent,
+        actionIntentType = actionIntentType,
+        isProgressButton = isProgressButton,
+        progress = progress,
+        progressColor = progressColor,
+        actionBgColor = actionBgColor,
+        isCCW = isCCW,
+        colorReach = colorReach
+    )
+
     constructor(
         key: String,
         title: CharSequence,
@@ -71,52 +91,37 @@ data class HyperAction(
     ) : this(
         key = key,
         title = title,
-        icon = null, // Icon is explicitly null
+        icon = null,
         pendingIntent = pendingIntent,
         actionIntentType = actionIntentType,
         isProgressButton = false,
         progress = 0,
         progressColor = null,
-        actionBgColor = actionBgColor
+        actionBgColor = actionBgColor,
+        isCCW = false,
+        colorReach = null
     )
 }
 
-/**
- * Represents a single image or icon resource for a HyperIsland notification.
- */
 data class HyperPicture(
     val key: String,
     val icon: Icon
 ) {
-    /**
-     * Secondary constructor to create a [HyperPicture] from a drawable resource ID.
-     * Use this for static resources.
-     */
     constructor(key: String, context: Context, drawableRes: Int) : this(
         key = key,
         icon = Icon.createWithResource(context, drawableRes)
     )
 
-    /**
-     * Secondary constructor to create a [HyperPicture] from a [Bitmap].
-     * Use this for dynamic images (e.g. generated or downloaded).
-     */
     constructor(key: String, bitmap: Bitmap) : this(
         key = key,
         icon = Icon.createWithBitmap(bitmap)
     )
 }
 
-/**
- * Creates a placeholder icon for text-only buttons.
- */
 private fun createTransparentIcon(context: Context): Icon {
     return Icon.createWithResource(context, android.R.drawable.screen_background_light_transparent)
 }
 
-/**
- * Main builder class for creating Xiaomi HyperIsland notifications.
- */
 class HyperIslandNotification private constructor(
     private val context: Context,
     private val businessName: String,
@@ -127,6 +132,11 @@ class HyperIslandNotification private constructor(
     private var baseInfo: BaseInfo? = null
     private var paramIsland: ParamIsland? = null
     private var progressBar: ProgressInfo? = null
+
+    // --- NEW CONFIGURATION VARIABLES ---
+    private var timeout: Long? = null
+    private var enableFloat: Boolean = true
+    private var isShownNotification: Boolean = true
 
     private val actions = mutableListOf<HyperAction>()
     private val pictures = mutableListOf<HyperPicture>()
@@ -147,13 +157,33 @@ class HyperIslandNotification private constructor(
 
     // --- Public Builder Methods ---
 
+    /**
+     * Sets the timeout for the island notification.
+     * @param durationMs The duration in milliseconds before the island hides.
+     */
+    fun setTimeout(durationMs: Long) = apply {
+        this.timeout = durationMs
+    }
+
+    /**
+     * Controls whether the notification should "float" (pop up) as a heads-up island.
+     * Set to false if you are updating an existing notification and don't want it to pop again.
+     */
+    fun setEnableFloat(enable: Boolean) = apply {
+        this.enableFloat = enable
+    }
+
+    /**
+     * Controls whether the notification is shown in the system notification shade.
+     */
+    fun setShowNotification(show: Boolean) = apply {
+        this.isShownNotification = show
+    }
+
     fun setSmallWindowTarget(fullyQualifiedActivityName: String) = apply {
         this.targetPage = fullyQualifiedActivityName
     }
 
-    /**
-     * Sets the expanded notification panel to the "Chat" style.
-     */
     fun setChatInfo(
         title: String,
         content: String? = null,
@@ -161,7 +191,6 @@ class HyperIslandNotification private constructor(
         timer: TimerInfo? = null,
         actionKeys: List<String>? = null
     ) = apply {
-        // Use HyperActionRef (Reference) to ensure visual properties are passed
         val actionRefs = actionKeys?.mapNotNull { key ->
             actions.firstOrNull { it.key == key }?.let { action ->
                 action.toActionRef(isFullDefinition = false)
@@ -178,9 +207,6 @@ class HyperIslandNotification private constructor(
         this.baseInfo = null
     }
 
-    /**
-     * Sets the expanded notification panel to the "Base" style.
-     */
     fun setBaseInfo(
         title: String,
         content: String,
@@ -189,7 +215,6 @@ class HyperIslandNotification private constructor(
         type: Int = 1,
         actionKeys: List<String>? = null
     ) = apply {
-        // Use HyperActionRef (Reference) to ensure visual properties are passed
         val actionRefs = actionKeys?.mapNotNull { key ->
             actions.firstOrNull { it.key == key }?.let { action ->
                 action.toActionRef(isFullDefinition = false)
@@ -223,10 +248,6 @@ class HyperIslandNotification private constructor(
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(combinePicInfo = progressComponent))
     }
 
-    /**
-     * Sets the expanded island (Big Island) content.
-     * Supports both Left and Right content areas.
-     */
     fun setBigIslandInfo(
         left: ImageTextInfoLeft? = null,
         right: ImageTextInfoRight? = null,
@@ -234,7 +255,6 @@ class HyperIslandNotification private constructor(
     ) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
 
-        // BigIsland typically uses simple refs, relying on the dictionary
         val actionRefs = actionKeys?.map { key ->
             SimpleActionRef(action = ACTION_PREFIX + key)
         }?.ifEmpty { null }
@@ -250,28 +270,79 @@ class HyperIslandNotification private constructor(
         )
     }
 
-    // Overload for simple left-only usage
     fun setBigIslandInfo(info: ImageTextInfoLeft) = setBigIslandInfo(left = info)
 
-    fun setBigIslandProgressCircle(pictureKey: String, title: String, progress: Int, color: String? = null, isCCW: Boolean = false) = apply {
+    fun setBigIslandProgressCircle(
+        pictureKey: String,
+        title: String,
+        progress: Int,
+        color: String? = null,
+        isCCW: Boolean = false,
+        actionKeys: List<String>? = null
+    ) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
+
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = TextInfo(title = title, content = null))
         val progressComponent = ProgressTextInfo(progressInfo = CircularProgressInfo(progress = progress, colorReach = color, isCCW = isCCW), textInfo = null)
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, progressTextInfo = progressComponent))
+
+        val actionRefs = actionKeys?.map { key ->
+            SimpleActionRef(action = ACTION_PREFIX + key)
+        }?.ifEmpty { null }
+
+        this.paramIsland = this.paramIsland?.copy(
+            islandProperty = 1,
+            bigIslandArea = BigIslandArea(
+                imageTextInfoLeft = leftInfo,
+                progressTextInfo = progressComponent,
+                actions = actionRefs
+            )
+        )
     }
 
-    fun setBigIslandCountdown(countdownTime: Long, pictureKey: String) = apply {
+    fun setBigIslandCountdown(
+        countdownTime: Long,
+        pictureKey: String,
+        actionKeys: List<String>? = null
+    ) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val timerInfo = TimerInfo(-1, countdownTime, System.currentTimeMillis(), System.currentTimeMillis())
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = null)
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo)))
+
+        val actionRefs = actionKeys?.map { key ->
+            SimpleActionRef(action = ACTION_PREFIX + key)
+        }?.ifEmpty { null }
+
+        this.paramIsland = this.paramIsland?.copy(
+            islandProperty = 1,
+            bigIslandArea = BigIslandArea(
+                imageTextInfoLeft = leftInfo,
+                sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo),
+                actions = actionRefs
+            )
+        )
     }
 
-    fun setBigIslandCountUp(startTime: Long, pictureKey: String) = apply {
+    fun setBigIslandCountUp(
+        startTime: Long,
+        pictureKey: String,
+        actionKeys: List<String>? = null
+    ) = apply {
         if (this.paramIsland == null) this.paramIsland = ParamIsland()
         val timerInfo = TimerInfo(1, startTime, startTime, System.currentTimeMillis())
         val leftInfo = ImageTextInfoLeft(type = 1, picInfo = PicInfo(type = 1, pic = pictureKey), textInfo = null)
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = leftInfo, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo)))
+
+        val actionRefs = actionKeys?.map { key ->
+            SimpleActionRef(action = ACTION_PREFIX + key)
+        }?.ifEmpty { null }
+
+        this.paramIsland = this.paramIsland?.copy(
+            islandProperty = 1,
+            bigIslandArea = BigIslandArea(
+                imageTextInfoLeft = leftInfo,
+                sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timerInfo),
+                actions = actionRefs
+            )
+        )
     }
 
     fun setProgressBar(progress: Int, color: String? = null) = apply {
@@ -312,9 +383,12 @@ class HyperIslandNotification private constructor(
             chatInfo = this.chatInfo,
             baseInfo = this.baseInfo,
             paramIsland = this.paramIsland,
-            // Top-level Dictionary of full definitions
-            actions = this.actions.map { it.toActionRef(true) }.ifEmpty { null },
-            progressInfo = this.progressBar
+            progressInfo = this.progressBar,
+            // --- NEW PARAMETERS MAPPED HERE ---
+            timeout = this.timeout,
+            enableFloat = this.enableFloat,
+            isShownNotification = this.isShownNotification,
+            islandFirstFloat = this.enableFloat // Mapping enableFloat to islandFirstFloat as well for safety
         )
         val payload = HyperIslandPayload(paramV2)
         val jsonString = jsonSerializer.encodeToString(payload)
@@ -322,33 +396,32 @@ class HyperIslandNotification private constructor(
         return jsonString
     }
 
-    /**
-     * This creates the HyperActionRef for the JSON.
-     * @param isFullDefinition If true, builds the full definition for the top-level "dictionary".
-     * If false, builds a "reference" for use in `chatInfo` or `baseInfo`.
-     */
     private fun HyperAction.toActionRef(isFullDefinition: Boolean): HyperActionRef {
         val prefixedKey = ACTION_PREFIX + this.key
 
         if (isFullDefinition) {
-            // Dictionary: Full definition, action = key, actionIntent = null
             return HyperActionRef(
                 type = this.getType(),
                 action = prefixedKey,
                 actionIntent = null,
                 actionIntentType = this.actionIntentType,
-                progressInfo = if (this.isProgressButton) ProgressInfo(progress = this.progress, colorProgress = this.progressColor) else null,
+                progressInfo = if (this.isProgressButton) ProgressInfo(
+                    progress = this.progress,
+                    colorProgress = this.colorReach ?: this.progressColor,
+                ) else null,
                 actionTitle = this.title?.toString(),
                 actionBgColor = this.actionBgColor
             )
         } else {
-            // Reference: Visuals + link, action = null, actionIntent = key
             return HyperActionRef(
                 type = this.getType(),
                 action = null,
                 actionIntent = prefixedKey,
                 actionIntentType = this.actionIntentType,
-                progressInfo = if (this.isProgressButton) ProgressInfo(progress = this.progress, colorProgress = this.progressColor) else null,
+                progressInfo = if (this.isProgressButton) ProgressInfo(
+                    progress = this.progress,
+                    colorProgress = this.colorReach ?: this.progressColor,
+                ) else null,
                 actionTitle = this.title?.toString(),
                 actionBgColor = this.actionBgColor
             )

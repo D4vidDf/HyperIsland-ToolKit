@@ -3,16 +3,26 @@ package com.d4viddf.hyperisland_kit.demo
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row // Added
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button // Added
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider // Added
+import androidx.compose.material3.Switch // Added
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue // Added
+import androidx.compose.runtime.mutableFloatStateOf // Added
+import androidx.compose.runtime.mutableStateOf // Added
+import androidx.compose.runtime.remember // Added
+import androidx.compose.runtime.setValue // Added
+import androidx.compose.ui.Alignment // Added
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -33,6 +43,17 @@ fun DemoListScreen(
         contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+
+        // --- 0. Configurable Options Demo (New) ---
+        item {
+            ConfigurableDemoCard(
+                onClick = { timeout, enableFloat, showInShade ->
+                    DemoNotificationManager.showConfigurableNotification(
+                        context, timeout, enableFloat, showInShade
+                    )
+                }
+            )
+        }
 
         // --- 1. Simple Demos ---
         item {
@@ -65,7 +86,6 @@ fun DemoListScreen(
             )
         }
 
-        // --- NEW DEMO ---
         item {
             DemoCard(
                 title = "Right Image Demo",
@@ -159,6 +179,74 @@ fun DemoCard(title: String, description: String, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun ConfigurableDemoCard(
+    onClick: (timeout: Long, enableFloat: Boolean, showInShade: Boolean) -> Unit
+) {
+    var timeoutSeconds by remember { mutableFloatStateOf(5f) }
+    var enableFloat by remember { mutableStateOf(true) }
+    var showInShade by remember { mutableStateOf(true) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Configurable Options Demo",
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = "Test timeout, float, and visibility settings.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
+            )
+
+            // Timeout Slider
+            Text(text = "Timeout: ${timeoutSeconds.toInt()}s")
+            Slider(
+                value = timeoutSeconds,
+                onValueChange = { timeoutSeconds = it },
+                valueRange = 0f..60f,
+                steps = 59
+            )
+
+            // Switches
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Enable Float", modifier = Modifier.weight(1f))
+                Switch(checked = enableFloat, onCheckedChange = { enableFloat = it })
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Show in Shade", modifier = Modifier.weight(1f))
+                Switch(checked = showInShade, onCheckedChange = { showInShade = it })
+            }
+
+            Button(
+                onClick = {
+                    onClick(
+                        (timeoutSeconds * 1000).toLong(),
+                        enableFloat,
+                        showInShade
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                Text("Show Configured Notification")
+            }
         }
     }
 }

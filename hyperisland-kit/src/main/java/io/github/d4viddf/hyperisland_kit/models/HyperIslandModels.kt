@@ -15,18 +15,26 @@ data class ParamV2(
     val business: String,
     val updatable: Boolean = true,
     val ticker: String,
+
+    // --- NEW FIELDS ---
+    @SerialName("timeout")
+    val timeout: Long? = null, // Duration in ms before hiding (optional)
+
+    @SerialName("enableFloat")
+    val enableFloat: Boolean = true, // Controls if the island pops up floating
+
     @SerialName("isShownNotification")
-    val isShownNotification: Boolean = true,
+    val isShownNotification: Boolean = true, // Controls if shown in notification shade
+
     @SerialName("islandFirstFloat")
-    val islandFirstFloat: Boolean = true,
+    val islandFirstFloat: Boolean = true, // Legacy/Alternative float control
+
     @SerialName("smallWindowInfo")
     val smallWindowInfo: SmallWindowInfo? = null,
     @SerialName("param_island")
     val paramIsland: ParamIsland? = null,
     val chatInfo: ChatInfo? = null,
     val baseInfo: BaseInfo? = null,
-    // --- ADDED BACK: Top-level actions dictionary ---
-    val actions: List<HyperActionRef>? = null,
     val progressInfo: ProgressInfo? = null
 )
 
@@ -35,7 +43,6 @@ data class ParamV2(
 data class SmallWindowInfo(
     val targetPage: String
 )
-
 
 // --- Island States (Summary/Expanded) ---
 
@@ -59,7 +66,6 @@ data class BigIslandArea(
     val sameWidthDigitInfo: SameWidthDigitInfo? = null,
     @SerialName("progressTextInfo")
     val progressTextInfo: ProgressTextInfo? = null,
-    // BigIsland usually takes simple refs, but keeping this flexible
     val actions: List<SimpleActionRef>? = null
 )
 
