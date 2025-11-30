@@ -211,7 +211,7 @@ object DemoNotificationManager {
     }
 
     // --- Configurable Demo ---
-    fun showConfigurableNotification(context: Context, timeout: Long, enableFloat: Boolean, isShownNotification: Boolean) {
+    fun showConfigurableNotification(context: Context, timeout: Long, enableFloat: Boolean, isShowNotification: Boolean) {
         if (!hasNotificationPermission(context)) return
         showSupportToast(context)
         val notificationId = getUniqueNotificationId()
@@ -226,7 +226,7 @@ object DemoNotificationManager {
             .setSmallIslandIcon(PIC_KEY_DEMO_ICON)
             .addPicture(demoPicture)
             .setEnableFloat(enableFloat)
-            .setShowNotification(isShownNotification)
+            .setShowNotification(isShowNotification)
         if (timeout > 0) hyperIslandBuilder.setTimeout(timeout)
         val resourceBundle = hyperIslandBuilder.buildResourceBundle()
         val jsonParam = hyperIslandBuilder.buildJsonParam()
