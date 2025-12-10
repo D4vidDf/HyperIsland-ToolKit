@@ -17,8 +17,14 @@ class HyperIslandListenerService : NotificationListenerService() {
         if (sbn == null) return
 
         val extras = sbn.notification.extras
-        // We capture EVERYTHING, even if it doesn't have the "param" key.
+
+        // --- STRICT FILTER ---
+        // Only process notifications that actually have the HyperIsland JSON data.
         val jsonParam = extras.getString("miui.focus.param")
+
+        if (jsonParam == null) {
+            return // Ignore standard notifications
+        }
 
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "No Title"
         val packageName = sbn.packageName
@@ -54,7 +60,7 @@ class HyperIslandListenerService : NotificationListenerService() {
             detailsMap["Error"] = "Failed to dump extras: ${e.message}"
         }
 
-        Log.d("HyperInspector", "Captured: $title ($packageName)")
+        Log.d("HyperInspector", "Captured Island Notification: $title ($packageName)")
 
         NotificationLogRepository.addLog(
             NotificationLog(
@@ -101,7 +107,6 @@ class HyperIslandListenerService : NotificationListenerService() {
                     deepDump(item, "$prefix[$index]", map)
                 }
             }
-            // Removed invalid 'is Parcelable[]' check; it is covered by 'is Array<*>'
 
             // --- Specific Type Handling ---
             is Icon -> map[prefix] = "Icon(type=${obj.type}, pkg=${obj.resPackage}, id=${obj.resId})"
@@ -114,7 +119,7 @@ class HyperIslandListenerService : NotificationListenerService() {
             is CharSequence -> map[prefix] = obj.toString()
             is Number, is Boolean -> map[prefix] = obj.toString()
 
-            // Primitive Arrays (Manual handling needed in Kotlin)
+            // Primitive Arrays
             is IntArray -> map[prefix] = "IntArray${obj.contentToString()}"
             is LongArray -> map[prefix] = "LongArray${obj.contentToString()}"
             is ByteArray -> map[prefix] = "ByteArray[${obj.size}]"

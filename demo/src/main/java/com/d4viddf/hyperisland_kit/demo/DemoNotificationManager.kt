@@ -6,6 +6,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.drawable.Icon
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
@@ -95,6 +100,37 @@ object DemoNotificationManager {
         return PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
+    // ============================================================================================
+    // NEW HELPER: Icon Processor
+    // ============================================================================================
+    /**
+     * Creates a bitmap-based Icon with built-in padding (margin) and a specific tint.
+     * This fixes the issue where icons look too big or are black on colored buttons.
+     *
+     * @param drawableResId The resource ID of the icon (e.g., R.drawable.ic_pause)
+     * @param color The tint color (e.g., Color.WHITE)
+     * @param paddingFactor Percentage of padding (0.25 = 25% padding on all sides)
+     */
+    private fun createCustomIcon(context: Context, drawableResId: Int, color: Int, paddingFactor: Float = 0.25f): Icon {
+        val drawable = ContextCompat.getDrawable(context, drawableResId)?.mutate()
+            ?: return Icon.createWithResource(context, drawableResId)
+
+        val size = 96 // Canvas size
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Calculate padding (Margin)
+        val padding = (size * paddingFactor).toInt()
+
+        // Set bounds inside the padding
+        drawable.setBounds(padding, padding, size - padding, size - padding)
+
+        // Apply Tint
+        drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+
+        drawable.draw(canvas)
+        return Icon.createWithBitmap(bitmap)
+    }
 
     // ============================================================================================
     // 1. MULTI-NODE PROGRESS DEMO (Fixed)
@@ -1010,34 +1046,48 @@ object DemoNotificationManager {
         context.getSystemService(NotificationManager::class.java).notify(notificationId, notification)
     }
 
-    // 9. NEW: Raw Progress + Color Button
-    // Mixed array: One progress button, one colored text button.
+    // ============================================================================================
+    // 9. NEW: Raw Progress + Color Button (UPDATED)
+    // ============================================================================================
     fun showRawProgressAndColorButton(context: Context) {
         if (!hasNotificationPermission(context)) return
         val notificationId = getUniqueNotificationId()
         val openAppIntent = createAppOpenIntent(context, 0)
+
+        // 1. Process the Stop Icon (for Progress): Green Tint + Margin
+        val progressColor = Color.parseColor("#34C759")
+        val greenStopIcon = createCustomIcon(context, R.drawable.rounded_pause_24, progressColor, 0.20f)
+
+        // 2. Process the Close Icon (for Button): White Tint + Margin
+        // Using built-in close icon or fallback
+        val closeDrawable = android.R.drawable.ic_menu_close_clear_cancel
+        val whiteCloseIcon = createCustomIcon(context, closeDrawable, Color.WHITE, 0.20f)
+
         val pic = HyperPicture(PIC_KEY_DEMO_ICON, context, R.drawable.rounded_timer_arrow_down_24)
 
-        // Icon for the Stop button (if needed, though text buttons can be text-only)
-        val iconStop = HyperPicture("pic_stop", context, R.drawable.rounded_pause_24)
+        // Define HyperPictures
+        val iconStop = HyperPicture("pic_stop", greenStopIcon)
+        val iconClose = HyperPicture("pic_close", whiteCloseIcon)
 
         // Intents
-        val intentProgress = createAppOpenIntent(context, 1) // Clicking the progress circle
-        val intentStop = createAppOpenIntent(context, 2)     // Clicking Stop
+        val intentProgress = createAppOpenIntent(context, 1)
+        val intentClose = createAppOpenIntent(context, 2)
 
-        // Register Actions
+        // Actions
         val actionProgress = HyperAction(ACTION_KEY_TEST_1, "Progress", intentProgress, 1)
-        val actionStop = HyperAction(ACTION_KEY_TEST_2, "Stop", intentStop, 1)
+        val actionClose = HyperAction(ACTION_KEY_TEST_2, "Close", intentClose, 1)
 
         val builder = HyperIslandNotification.Builder(context, "demo", "Mix")
             .addPicture(pic)
             .addPicture(iconStop)
+            .addPicture(iconClose)
             .addAction(actionProgress)
-            .addAction(actionStop)
+            .addAction(actionClose)
             .setSmallWindowTarget("${context.packageName}.MainActivity")
 
-        // Action 1: Progress Button (No title, has progressInfo)
-        // Action 2: Text/Icon Button (Title, Color)
+        // Fixed JSON:
+        // 1. Second Item "action" key changed to ACTION_KEY_TEST_2
+        // 2. Added "actionTitle": "Close" for clarity
         val jsonParam = """
         {
           "param_v2": {
@@ -1048,28 +1098,31 @@ object DemoNotificationManager {
             "baseInfo": {
                 "type": 2,
                 "title": "Downloading...",
-                "content": "Progress + Action",
+                "content": "Progress + Close",
                 "picFunction": "miui.focus.pic_$PIC_KEY_DEMO_ICON"
             },
             "actions": [
                 {
-                    "type":1,
-                   "actionIntent": "miui.focus.action_$ACTION_KEY_TEST_1",
-                   "actionIntentType": 1,
-                   "actionIcon": "miui.focus.pic_pic_stop",
-                   "actionIconDark": "miui.focus.pic_pic_stop",
-                   "actionBgColor": "#ffffff", 
-                   "actionBgColorDark": "#ffffff",
-                   "progressInfo": {
+                    "type": 1, 
+                    "actionIntent": "miui.focus.action_$ACTION_KEY_TEST_1",
+                    "actionIntentType": 1,
+                    "actionIcon": "miui.focus.pic_pic_stop", 
+                    "actionIconDark": "miui.focus.pic_pic_stop",
+                    "progressInfo": {
                         "progress": 65,
+                        "colorProgress": "#34C759",
+                        "colorProgressDark": "#34C759",
+                        "colorProgressEnd": "#E0E0E0",
+                        "colorProgressEndDark": "#333333",
                         "isCCW": true
-                   }
+                    }
                 },
                 {
-                   "type":0,
-                   "actionTitle": "Stop",
-                   "actionIcon": "miui.focus.pic_pic_stop",
-                   "actionIconDark": "miui.focus.pic_pic_stop",
+                   "action": "miui.focus.action_$ACTION_KEY_TEST_2",
+                   "type": 0,
+                   "actionTitle": "Close",
+                   "actionIcon": "miui.focus.pic_pic_close",
+                   "actionIconDark": "miui.focus.pic_pic_close",
                    "actionBgColor": "#FF6700", 
                    "actionBgColorDark": "#FF6700",
                    "actionIntent": "miui.focus.action_$ACTION_KEY_TEST_2",
