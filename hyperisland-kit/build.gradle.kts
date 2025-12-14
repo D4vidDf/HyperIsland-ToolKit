@@ -1,9 +1,8 @@
-import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
-    id("com.vanniktech.maven.publish") version "0.28.0" // Use a recent version
+    id("com.vanniktech.maven.publish") version "0.35.0" // Use a recent version
 
 }
 android {
@@ -75,7 +74,7 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/D4vidDf/HyperIsland-ToolKit.git"
         }
     }
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     signAllPublications()
 }
 
