@@ -1,49 +1,40 @@
-# HyperIsland Kit 🏝️
-<img alt="Version 0.3.3" src="https://img.shields.io/badge/version-0.3.3-blue"/>
+# HyperIsland ToolKit 🏝️
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.d4viddf/hyperisland_kit)](https://central.sonatype.com/artifact/io.github.d4viddf/hyperisland_kit)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A simple, fluent Kotlin builder for creating notifications on Xiaomi's HyperIsland.
+A powerful, type-safe Kotlin library for integrating **Xiaomi HyperOS Dynamic Island** notifications (Focus Notifications) into your Android apps.
 
-This library abstracts away the complex JSON and `Bundle` linking, allowing you to build rich HyperIsland notifications with clean, readable Kotlin.
+This library abstracts away the undocumented JSON payloads and complex Bundle logic, providing a clean **Kotlin DSL** to build rich, pixel-perfect system notifications.
+
+---
+
+## 📚 Documentation
+
+The full documentation, guides, and component references are available on our new website:
+
+## ➡️ [Read the Documentation](https://d4viddf.github.io/HyperIsland-ToolKit/)
+
+**Quick Links:**
+* 🚀 **[Getting Started](https://hyperisland.d4viddf.com/docs/getting-started/)** - Installation & "Hello World".
+* 🛠 **[The Builder](https://hyperisland.d4viddf.com/docs/builder/)** - How to generate the payloads.
+* 🧩 **[Components](https://hyperisland.d4viddf.com/docs/components/)** - Templates, Actions, and Progress Bars.
+* 🏝 **[Dynamic Island](https://hyperisland.d4viddf.com/docs/components/island/configuration/)** - Customizing the pill shape and behavior.
+
+---
 
 ## Features
-* Fluent, chained Kotlin builder
-* No more manual JSON building
-* Automatically handles all `miui.focus.action_` prefixing
-* Full support for all core features:
-    * Action Buttons (Icon, Text, or Progress)
-    * Timers (Countdown & Count-Up)
-    * Progress Bars (Linear & Circular)
-    * Custom Icons & Colors
-
----
-
-## 📚 Documentation (Read This!)
-
-**This library is simple to use, but the Xiaomi API is complex.**
-
-For example, all notifications require a **two-step build process** and **action buttons** require special setup.
-
-We **strongly recommend** reading the official Wiki to understand how to build your notifications correctly.
-
-## ➡️ [Go to the Full GitHub Wiki](https://github.com/D4vidDf/HyperIsland-ToolKit/wiki)
-
-**Key Wiki Pages:**
-* **[Getting Started](https://github.com/D4vidDf/HyperIsland-ToolKit/wiki/Getting-Started):** Explains installation and the **critical** two-step build process.
-* **[Handling Actions & Intents](https://github.com/D4vidDf/HyperIsland-ToolKit/wiki/Handling-Actions-&-Intents):** Explains how to make buttons work.
-* **[Notification Types & Examples](https://github.com/D4vidDf/HyperIsland-ToolKit/wiki/Notification-Types-&-Examples):** A "cookbook" for timers, progress bars, etc.
-
----
+* **Type-Safe DSL:** No more manual JSON string concatenation.
+* **Smart Defaults:** Automatically handles system prefixes like `miui.focus.pic_`.
+* **20+ Templates:** Support for Chat, Media, Timer, Upload, Taxi, and more.
+* **Native Integration:** Uses standard Android Notification APIs under the hood.
 
 ## Installation
 
-The library is available on **Maven Central**.
+Add the dependency to your app-level `build.gradle.kts` file:
 
-1.  Add `mavenCentral()` to your repositories in your root `settings.gradle.kts` (it's usually there by default).
-
-2.  Add the dependency to your app-level `build.gradle.kts` file:
-```gradle
+```kotlin
 dependencies {
-    implementation("io.github.d4viddf:hyperisland_kit:0.3.0")
+    implementation("io.github.d4viddf:hyperisland_kit:0.4.0")
 }
 ```
 ## License
