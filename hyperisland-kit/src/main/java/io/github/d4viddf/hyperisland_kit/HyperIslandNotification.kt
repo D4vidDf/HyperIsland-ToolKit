@@ -8,11 +8,44 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import io.github.d4viddf.hyperisland_kit.models.*
+import android.widget.RemoteViews
+import androidx.core.net.toUri
+import io.github.d4viddf.hyperisland_kit.models.AnimIconInfo
+import io.github.d4viddf.hyperisland_kit.models.AnimTextInfo
+import io.github.d4viddf.hyperisland_kit.models.BaseInfo
+import io.github.d4viddf.hyperisland_kit.models.BgInfo
+import io.github.d4viddf.hyperisland_kit.models.BigIslandArea
+import io.github.d4viddf.hyperisland_kit.models.ChatInfo
+import io.github.d4viddf.hyperisland_kit.models.CircularProgressInfo
+import io.github.d4viddf.hyperisland_kit.models.CombinePicInfo
+import io.github.d4viddf.hyperisland_kit.models.CoverInfo
+import io.github.d4viddf.hyperisland_kit.models.FixedWidthDigitInfo
+import io.github.d4viddf.hyperisland_kit.models.HighlightInfo
+import io.github.d4viddf.hyperisland_kit.models.HighlightInfoV3
+import io.github.d4viddf.hyperisland_kit.models.HintInfo
+import io.github.d4viddf.hyperisland_kit.models.HyperActionRef
+import io.github.d4viddf.hyperisland_kit.models.HyperIslandPayload
+import io.github.d4viddf.hyperisland_kit.models.IconTextInfo
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
+import io.github.d4viddf.hyperisland_kit.models.MultiProgressInfo
+import io.github.d4viddf.hyperisland_kit.models.ParamCustom
+import io.github.d4viddf.hyperisland_kit.models.ParamIsland
+import io.github.d4viddf.hyperisland_kit.models.ParamV2
+import io.github.d4viddf.hyperisland_kit.models.PicInfo
+import io.github.d4viddf.hyperisland_kit.models.ProgressInfo
+import io.github.d4viddf.hyperisland_kit.models.ProgressTextInfo
+import io.github.d4viddf.hyperisland_kit.models.SameWidthDigitInfo
+import io.github.d4viddf.hyperisland_kit.models.ShareData
+import io.github.d4viddf.hyperisland_kit.models.SimpleActionRef
+import io.github.d4viddf.hyperisland_kit.models.SmallIslandArea
+import io.github.d4viddf.hyperisland_kit.models.SmallWindowInfo
+import io.github.d4viddf.hyperisland_kit.models.StepInfo
+import io.github.d4viddf.hyperisland_kit.models.TextButtonInfo
+import io.github.d4viddf.hyperisland_kit.models.TextInfo
+import io.github.d4viddf.hyperisland_kit.models.TimerInfo
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import androidx.core.net.toUri
 
 private const val ACTION_PREFIX = "miui.focus.action_"
 private const val PIC_PREFIX = "miui.focus.pic_"
@@ -123,6 +156,35 @@ class HyperIslandNotification private constructor(
     private var isShowNotification: Boolean = true
     private var logEnabled: Boolean = true
 
+    private var islandFirstFloat: Boolean = true
+    private var padding: Boolean? = null
+    private var showSmallIcon: Boolean? = null
+    private var hideDeco: Boolean? = null
+    private var cancel: Boolean? = null
+    private var reopen: Boolean? = null
+    private var updatable: Boolean = true
+
+    private var picTicker: Icon? = null
+    private var picTickerDark: Icon? = null
+    private var outEffectSrc: String? = null
+
+    // AOD specific
+    private var aodTitle: String? = null
+    private var aodPic: Icon? = null
+
+
+    // RemoteViews container
+    private var rv: RemoteViews? = null
+    private var rvAod: RemoteViews? = null
+    private var rvNight: RemoteViews? = null
+    private var rvTiny: RemoteViews? = null
+    private var rvTinyNight: RemoteViews? = null
+    private var rvDecoLand: RemoteViews? = null
+    private var rvDecoLandNight: RemoteViews? = null
+    private var rvDecoPort: RemoteViews? = null
+    private var rvDecoPortNight: RemoteViews? = null
+    private var rvIslandExpand: RemoteViews? = null // For expanded island view
+
     // Action Lists
     private val actions = mutableListOf<HyperAction>()
     private val hiddenActions = mutableListOf<HyperAction>() // Registered in Bundle, but not in root JSON 'actions'
@@ -151,6 +213,51 @@ class HyperIslandNotification private constructor(
     fun setShowNotification(show: Boolean) = apply { this.isShowNotification = show }
     fun setSmallWindowTarget(activityName: String) = apply { this.targetPage = activityName }
     fun setScene(sceneName: String) = apply { this.scene = sceneName }
+
+
+    // ==========================================
+    //  CUSTOM VIEW (DIY) SETTERS
+    // ==========================================
+
+    /**
+     * Sets the main Custom RemoteView for the notification/island.
+     * Setting this implies you are building a Custom Notification, not a Template one.
+     */
+    fun setCustomRemoteView(rv: RemoteViews) = apply { this.rv = rv }
+
+    /**
+     * Sets the RemoteView for the Always-On Display.
+     */
+    fun setCustomAodRemoteView(rv: RemoteViews) = apply { this.rvAod = rv }
+
+    fun setCustomNightRemoteView(rv: RemoteViews) = apply { this.rvNight = rv }
+    fun setCustomTinyRemoteView(rv: RemoteViews) = apply { this.rvTiny = rv }
+    fun setCustomTinyNightRemoteView(rv: RemoteViews) = apply { this.rvTinyNight = rv }
+    fun setCustomDecoLandRemoteView(rv: RemoteViews) = apply { this.rvDecoLand = rv }
+    fun setCustomDecoLandNightRemoteView(rv: RemoteViews) = apply { this.rvDecoLandNight = rv }
+    fun setCustomDecoPortRemoteView(rv: RemoteViews) = apply { this.rvDecoPort = rv }
+    fun setCustomDecoPortNightRemoteView(rv: RemoteViews) = apply { this.rvDecoPortNight = rv }
+    fun setCustomIslandExpandRemoteView(rv: RemoteViews) = apply { this.rvIslandExpand = rv }
+
+
+    /**
+     * Set the Ticker Icon (Required for Custom Mode).
+     */
+    fun setTickerIcon(icon: Icon) = apply { this.picTicker = icon }
+
+    /**
+     * Set the Dark Mode Ticker Icon (Optional).
+     */
+    fun setTickerIconDark(icon: Icon) = apply { this.picTickerDark = icon }
+
+    /**
+     * Set AOD Text Title (Mutually exclusive with AOD RemoteView).
+     */
+    fun setAodConfig(title: String?, pic: Icon? = null) = apply {
+        this.aodTitle = title
+        this.aodPic = pic
+    }
+
 
     /**
      * Adds an action that will appear in the notification's bottom action bar.
@@ -388,14 +495,7 @@ class HyperIslandNotification private constructor(
     //  ISLAND SETTERS
     // ==========================================
 
-    fun setSmallIsland(aZone: ImageTextInfoLeft, bZone: ImageTextInfoRight?) = apply {
-        ensureParamIsland()
-        val fixedA = aZone.copy(picInfo = prefixPicInfo(aZone.picInfo))
-        val fixedB = bZone?.copy(picInfo = prefixPicInfo(bZone.picInfo))
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(imageTextInfoLeft = fixedA, imageTextInfoRight = fixedB))
-    }
-
-    fun setSmallIslandIcon(picKey: String) = apply {
+    fun setSmallIsland(picKey: String) = apply {
         ensureParamIsland()
         this.paramIsland = this.paramIsland?.copy(islandProperty = 1, smallIslandArea = SmallIslandArea(picInfo = PicInfo(type = 1, pic = PIC_PREFIX + picKey)))
     }
@@ -428,7 +528,6 @@ class HyperIslandNotification private constructor(
                 textInfo = centerText,
                 picInfo = fixedPic,
                 progressTextInfo = progressText,
-                actions = actionRefs
             )
         )
     }
@@ -443,7 +542,7 @@ class HyperIslandNotification private constructor(
         val timer = TimerInfo(-1, countdownTime, System.currentTimeMillis(), System.currentTimeMillis())
         val left = ImageTextInfoLeft(1, PicInfo(1, PIC_PREFIX + pictureKey), null, null)
         val actions = actionKeys?.map { SimpleActionRef(ACTION_PREFIX + it) }?.ifEmpty { null }
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = left, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timer), actions = actions))
+        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = left, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timer)))
     }
 
     fun setBigIslandCountUp(startTime: Long, pictureKey: String, actionKeys: List<String>? = null) = apply {
@@ -451,7 +550,7 @@ class HyperIslandNotification private constructor(
         val timer = TimerInfo(1, startTime, startTime, startTime)
         val left = ImageTextInfoLeft(1, PicInfo(1, PIC_PREFIX + pictureKey), null, null)
         val actions = actionKeys?.map { SimpleActionRef(ACTION_PREFIX + it) }?.ifEmpty { null }
-        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = left, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timer), actions = actions))
+        this.paramIsland = this.paramIsland?.copy(islandProperty = 1, bigIslandArea = BigIslandArea(imageTextInfoLeft = left, sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timer)))
     }
 
     fun setBigIslandProgressCircle(
@@ -476,7 +575,6 @@ class HyperIslandNotification private constructor(
             bigIslandArea = BigIslandArea(
                 imageTextInfoLeft = leftInfo,
                 progressTextInfo = progressComponent,
-                actions = actionRefs
             )
         )
     }
@@ -488,6 +586,36 @@ class HyperIslandNotification private constructor(
             )
         )
     }
+
+    /**
+     * If true, the Dynamic Island will expand automatically upon first display (Float first).
+     */
+    fun setIslandFirstFloat(enable: Boolean) = apply { this.islandFirstFloat = enable }
+
+    /**
+     * Controls the padding around the content.
+     */
+    fun setPadding(enable: Boolean) = apply { this.padding = enable }
+
+    /**
+     * Shows the small app icon in the header (usually for BaseInfo).
+     */
+    fun setShowSmallIcon(show: Boolean) = apply { this.showSmallIcon = show }
+
+    /**
+     * Hides the decoration (like the arrow or extra icons) in certain templates.
+     */
+    fun setHideDeco(hide: Boolean) = apply { this.hideDeco = hide }
+
+    /**
+     * If true, allows the notification to be cancelled/dismissed programmatically or by user.
+     */
+    fun setCancel(cancel: Boolean) = apply { this.cancel = cancel }
+
+    /**
+     * Logic for reopening the island or app (specific to certain system apps).
+     */
+    fun setReopen(reopen: Boolean) = apply { this.reopen = reopen }
 
     // ==========================================
     //  BUILD & HELPERS
@@ -521,12 +649,19 @@ class HyperIslandNotification private constructor(
         this.iconTextInfo = null
     }
 
+    // ==========================================
+    //  BUILD METHODS
+    // ==========================================
+
+    /**
+     * METHOD A: STANDARD TEMPLATE
+     * Used when you are using BaseInfo, ChatInfo, etc.
+     */
     fun buildResourceBundle(): Bundle {
         if (!isSupported(context)) return Bundle()
         val bundle = Bundle()
         val actionsBundle = Bundle()
 
-        // Register ALL actions (visible + hidden) in the Bundle
         val allActions = actions + hiddenActions
 
         allActions.forEach {
@@ -542,6 +677,7 @@ class HyperIslandNotification private constructor(
     }
 
     fun buildJsonParam(): String {
+        // [Existing logic for ParamV2]
         val finalIsland = (this.paramIsland ?: ParamIsland()).copy(
             islandPriority = this.islandPriority, islandTimeout = this.islandTimeout, dismissIsland = this.dismissIsland,
             maxSize = this.maxSize, needCloseAnimation = this.needCloseAnimation, expandedTime = this.expandedTime,
@@ -549,22 +685,88 @@ class HyperIslandNotification private constructor(
         )
 
         val paramV2 = ParamV2(
-            business = businessName, ticker = ticker, smallWindowInfo = targetPage?.let { SmallWindowInfo(it) },
-            // Templates
+            business = businessName, ticker = ticker, smallWindowInfo = targetPage?.let { SmallWindowInfo(it) }, scene = scene,
+            timeout = timeout, enableFloat = enableFloat, isShowNotification = isShowNotification,
+            islandFirstFloat = this.islandFirstFloat, padding = this.padding, showSmallIcon = this.showSmallIcon,
+            hideDeco = this.hideDeco, cancel = this.cancel, reopen = this.reopen,
             chatInfo = chatInfo, baseInfo = baseInfo, highlightInfo = highlightInfo, highlightInfoV3 = highlightInfoV3,
             coverInfo = coverInfo, animTextInfo = animTextInfo, iconTextInfo = iconTextInfo,
-            // Components
             paramIsland = finalIsland,
-            // Only visible actions go here
             actions = actions.map { it.toActionRef(true) }.ifEmpty { null },
             textButton = textButton, progressInfo = progressBar, multiProgressInfo = multiProgressInfo, bgInfo = bgInfo,
-            hintInfo = hintInfo, stepInfo = stepInfo, timeout = timeout, enableFloat = enableFloat, isShowNotification = isShowNotification,
-            islandFirstFloat = enableFloat, bannerPicInfo = this.bannerPicInfo
+            hintInfo = hintInfo, stepInfo = stepInfo, bannerPicInfo = this.bannerPicInfo
         )
         val payload = HyperIslandPayload(paramV2, scene = scene)
-        val jsonString = jsonSerializer.encodeToString(payload)
-        if (logEnabled) Log.d("HyperIsland", "Payload JSON: $jsonString")
-        return jsonString
+        return jsonSerializer.encodeToString(payload)
+    }
+
+    /**
+     * METHOD B: CUSTOM VIEW (DIY)
+     * Used when you have set a RemoteView using setCustomRemoteView().
+     * This returns a SINGLE Bundle containing everything (JSON + Views + Pics).
+     * Add this result directly to your NotificationCompat.Builder using .addExtras()
+     */
+    fun buildCustomExtras(): Bundle {
+        val extras = Bundle()
+        val picsBundle = Bundle()
+
+        // 1. Ticker Images
+        if (picTicker != null) {
+            picsBundle.putParcelable("miui.focus.pic_ticker", picTicker)
+        }
+        if (picTickerDark != null) {
+            picsBundle.putParcelable("miui.focus.pic_ticker_dark", picTickerDark)
+        }
+
+        // 2. AOD Images
+        if (aodTitle != null && rvAod == null && aodPic != null) {
+            picsBundle.putParcelable("miui.focus.pic_aod", aodPic)
+        }
+
+        // 3. Additional Pictures (from addPicture)
+        pictures.forEach { picsBundle.putParcelable(PIC_PREFIX + it.key, it.icon) }
+
+        // 4. Construct JSON (ParamCustom)
+        val finalIsland = (this.paramIsland ?: ParamIsland()).copy(
+            islandPriority = this.islandPriority, islandTimeout = this.islandTimeout, dismissIsland = this.dismissIsland,
+            maxSize = this.maxSize, needCloseAnimation = this.needCloseAnimation, expandedTime = this.expandedTime,
+            highlightColor = this.highlightColor
+        )
+
+        val paramCustom = ParamCustom(
+            ticker = ticker,
+            tickerPic = if (picTicker != null) "miui.focus.pic_ticker" else null,
+            tickerPicDark = if (picTickerDark != null) "miui.focus.pic_ticker_dark" else null,
+            enableFloat = enableFloat,
+            updatable = updatable,
+            isShowNotification = isShowNotification,
+            islandFirstFloat = islandFirstFloat,
+            timeout = (timeout ?: 5000L).toInt() / 1000, // Convert to Seconds for DIY as per Ref? Or keep ms? Ref used int 280.
+            reopen = reopen,
+            outEffectSrc = outEffectSrc,
+            aodTitle = if (rvAod == null) aodTitle else null,
+            aodPic = if (aodTitle != null && rvAod == null && aodPic != null) "miui.focus.pic_aod" else null,
+            paramIsland = finalIsland
+        )
+
+        // 5. Pack everything
+        extras.putString("miui.focus.param.custom", jsonSerializer.encodeToString(paramCustom))
+        extras.putParcelable("miui.focus.pics", picsBundle)
+        extras.putString("miui.focus.ticker", ticker)
+
+        // 6. Pack RemoteViews
+        rv?.let { extras.putParcelable("miui.focus.rv", it) }
+        rvAod?.let { extras.putParcelable("miui.focus.rvAod", it) }
+        rvNight?.let { extras.putParcelable("miui.focus.rvNight", it) }
+        rvTiny?.let { extras.putParcelable("miui.focus.rv.tiny", it) }
+        rvTinyNight?.let { extras.putParcelable("miui.focus.rv.tinyNight", it) }
+        rvDecoLand?.let { extras.putParcelable("miui.focus.rv.deco.land", it) }
+        rvDecoLandNight?.let { extras.putParcelable("miui.focus.rv.deco.landNight", it) }
+        rvDecoPort?.let { extras.putParcelable("miui.focus.rv.deco.port", it) }
+        rvDecoPortNight?.let { extras.putParcelable("miui.focus.rv.deco.portNight", it) }
+        rvIslandExpand?.let { extras.putParcelable("miui.focus.rv.island.expand", it) }
+
+        return extras
     }
 
     private fun HyperAction.toActionRef(isFullDefinition: Boolean): HyperActionRef {

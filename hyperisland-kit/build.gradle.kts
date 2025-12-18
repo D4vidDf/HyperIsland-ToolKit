@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = 35
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -44,7 +44,7 @@ android {
 mavenPublishing {
 
 
-    coordinates("io.github.d4viddf", "hyperisland_kit", "0.4.0")
+    coordinates("io.github.d4viddf", "hyperisland_kit", "0.4.3")
 
     pom {
         name = "HyperIsland ToolKit"

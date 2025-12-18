@@ -96,7 +96,25 @@ fun DemoListScreen(
         item { DemoCard("Countdown Timer", "15-minute countdown.", onClick = { DemoNotificationManager.showCountdownNotification(context) }) }
         item { DemoCard("Count-Up Timer", "Timer counting up.", onClick = { DemoNotificationManager.showCountUpNotification(context) }) }
         item { DemoCard("Multi-Action", "Stop (Progress) + Close buttons.", onClick = { DemoNotificationManager.showMultiActionNotification(context) }) }
+
+        item {
+            DemoCard(
+                title = "Focus DIY (Custom View)",
+                description = "Uses 'miui.focus.rv' and 'param.custom' to render a pure RemoteView island.",
+                onClick = { DemoNotificationManager.showFocusDiyNotification(context) }
+            )
+        }
+
+        item {
+            DemoCard(
+                title = "Music Player (DIY)",
+                description = "Custom RemoteView with Timeline, Controls, and Dynamic Color.",
+                onClick = { DemoNotificationManager.showMusicPlayerDemo(context) }
+            )
+        }
     }
+
+
 }
 
 @Composable

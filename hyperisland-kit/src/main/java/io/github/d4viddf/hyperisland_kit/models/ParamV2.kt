@@ -14,18 +14,19 @@ data class ParamV2(
     @SerialName("timeout") val timeout: Long? = null,
     @SerialName("enableFloat") val enableFloat: Boolean = true,
     @SerialName("isShowNotification") val isShowNotification: Boolean = true,
-    @SerialName("islandFirstFloat") val islandFirstFloat: Boolean = true,
+    @SerialName("islandFirstFloat") val islandFirstFloat: Boolean = false,
     @SerialName("padding") val padding: Boolean? = null,
     @SerialName("showSmallIcon") val showSmallIcon: Boolean? = null,
     @SerialName("hideDeco") val hideDeco: Boolean? = null,
     @SerialName("cancel") val cancel: Boolean? = null,
-    @SerialName("reopen") val reopen: String? = null,
+    @SerialName("reopen") val reopen: Boolean? = null,
 
     // --- Identifiers ---
     @SerialName("notifyId") val notifyId: String? = null,
     @SerialName("orderId") val orderId: String? = null,
 
     // --- Visual Assets ---
+    val scene: String? = null,
     @SerialName("tickerPic") val tickerPic: String? = null,
     @SerialName("tickerPicDark") val tickerPicDark: String? = null,
     @SerialName("outEffectColor") val outEffectColor: String? = null,

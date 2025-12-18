@@ -12,5 +12,4 @@ data class BigIslandArea(
     @SerialName("progressTextInfo") val progressTextInfo: ProgressTextInfo? = null,
     val textInfo: TextInfo? = null,
     val picInfo: PicInfo? = null,
-    val actions: List<SimpleActionRef>? = null
 )

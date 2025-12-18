@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
                             }
                             // --- NEW ROUTE ---
                             composable(Navigation.NotificationLog.route) {
-                                NotificationLogScreen()
+                                NotificationInspectorScreen()
                             }
                         }
                     }

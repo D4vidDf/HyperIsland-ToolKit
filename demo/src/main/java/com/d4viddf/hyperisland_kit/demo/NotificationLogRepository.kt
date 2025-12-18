@@ -1,30 +1,29 @@
 package com.d4viddf.hyperisland_kit.demo
 
-import androidx.compose.runtime.mutableStateListOf
-
-data class NotificationLog(
-    val id: String,
-    val timestamp: Long,
-    val packageName: String,
-    val title: String,
-    val jsonParam: String?,
-    // Stores decoded details about pictures and actions
-    val extrasDetails: Map<String, String>,
-    val assets: Map<String, String> = emptyMap()
-
-)
+import android.graphics.Bitmap
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 object NotificationLogRepository {
-    val logs = mutableStateListOf<NotificationLog>()
+    // Stores Live Data: Pair(Notification Data, Map of Images)
+    private val _notifications = MutableStateFlow<List<Pair<InspectedNotification, Map<String, Bitmap>>>>(emptyList())
+    val notifications = _notifications.asStateFlow()
 
-    fun addLog(log: NotificationLog) {
-        logs.add(0, log)
-        if (logs.size > 50) {
-            logs.removeRange(50, logs.size)
+    fun add(data: Pair<InspectedNotification, Map<String, Bitmap>>) {
+        val current = _notifications.value.toMutableList()
+
+        // Add new notification to the top
+        current.add(0, data)
+
+        // Limit buffer to 50 items to prevent OutOfMemory errors with large Bitmaps
+        if (current.size > 50) {
+            current.removeAt(current.lastIndex)
         }
+
+        _notifications.value = current
     }
 
     fun clear() {
-        logs.clear()
+        _notifications.value = emptyList()
     }
 }
