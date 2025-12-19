@@ -19,7 +19,7 @@ data class ParamCustom(
     val updatable: Boolean = true,
     val isShowNotification: Boolean = true,
     @SerialName("islandFirstFloat") val islandFirstFloat: Boolean = true,
-    val timeout: Int = 5000,
+    val timeout: Long? = 5000,
     val reopen: Boolean? = true,
 
     // --- Visual Effects ---
