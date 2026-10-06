@@ -1,4 +1,4 @@
-package com.d4viddf.hyperisland_kit.demo
+package com.d4viddf.hyperisland_kit.demo.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -7,29 +7,30 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
-// Sealed class to define our navigation destinations
-sealed class Navigation(
+sealed class NavigationDestination(
     val route: String,
     val title: String,
     val icon: ImageVector
 ) {
-    object Welcome : Navigation(
+    object Welcome : NavigationDestination(
         route = "welcome",
-        title = "welcome",
+        title = "Welcome",
         icon = Icons.Default.Notifications
     )
-    object Compatibility : Navigation(
+
+    object Compatibility : NavigationDestination(
         route = "compatibility",
         title = "Check",
         icon = Icons.Default.CheckCircle
     )
-    object Demos : Navigation(
+
+    object Demos : NavigationDestination(
         route = "demos",
         title = "Demos",
         icon = Icons.AutoMirrored.Filled.List
     )
-    // New Bottom Nav Item
-    object NotificationLog : Navigation(
+
+    object NotificationLog : NavigationDestination(
         route = "notification_log",
         title = "Inspector",
         icon = Icons.Default.Search

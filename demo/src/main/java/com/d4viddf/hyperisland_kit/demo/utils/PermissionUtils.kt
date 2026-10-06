@@ -1,4 +1,4 @@
-package com.d4viddf.hyperisland_kit.demo
+package com.d4viddf.hyperisland_kit.demo.utils
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.d4viddf.hyperisland_kit.demo.ui.navigation.NavigationDestination
 
 /**
  * A composable that checks for notification permission on every ON_RESUME event.
@@ -27,9 +28,7 @@ fun CheckPermissionLost(navController: NavController) {
                         context, Manifest.permission.POST_NOTIFICATIONS
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    // Permission is lost. Navigate back to Welcome, clearing the
-                    // main app from the back stack.
-                    navController.navigate(Navigation.Welcome.route) {
+                    navController.navigate(NavigationDestination.Welcome.route) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 }

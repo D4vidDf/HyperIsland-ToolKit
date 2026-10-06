@@ -1,4 +1,4 @@
-package com.d4viddf.hyperisland_kit.demo
+package com.d4viddf.hyperisland_kit.demo.data.parser
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -11,57 +11,59 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import java.util.UUID
+import android.util.Log
 import androidx.core.graphics.createBitmap
+import com.d4viddf.hyperisland_kit.demo.data.model.InspectedAction
+import com.d4viddf.hyperisland_kit.demo.data.model.InspectedNotification
+import com.d4viddf.hyperisland_kit.demo.data.model.ResourceMeta
+import kotlinx.serialization.json.Json
+import java.util.UUID
 
 object NotificationParser {
+    private const val TAG = "NotificationParser"
     private val jsonPretty = Json { prettyPrint = true; ignoreUnknownKeys = true }
 
     fun parse(context: Context, sbn: StatusBarNotification): Pair<InspectedNotification, Map<String, Bitmap>> {
         val notif = sbn.notification
         val extras = notif.extras
 
-        // 1. Basic Info
+        val appName = try {
+            val pm = context.packageManager
+            val appInfo = pm.getApplicationInfo(sbn.packageName, 0)
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (e: Exception) {
+            sbn.packageName
+        }
+
         val title = extras.getString(Notification.EXTRA_TITLE) ?: ""
         val content = extras.getString(Notification.EXTRA_TEXT) ?: ""
         val styleClass = extras.getString(Notification.EXTRA_TEMPLATE)
         val styleSimpleName = styleClass?.substringAfterLast(".")
 
-        // 2. Images & Metadata Collections
         val imagesMap = mutableMapOf<String, Bitmap>()
         val metaMap = mutableMapOf<String, ResourceMeta>()
 
-        // Helper to process any icon found
         fun processIcon(key: String, icon: Icon?) {
             if (icon == null) return
-
-            // A. Extract Metadata
-            val meta = extractIconMeta(context, icon)
+            val meta = extractIconMeta(icon)
             metaMap[key] = meta
 
-            // B. Extract Bitmap
             iconToBitmap(context, icon)?.let {
                 imagesMap[key] = it
-                // Update meta with actual bitmap dimensions if available
                 metaMap[key] = meta.copy(width = it.width, height = it.height, fileSize = "${it.byteCount / 1024} KB")
             }
         }
 
-        // 3. Extract Standard Icons
         processIcon("Small Icon", notif.smallIcon)
         notif.getLargeIcon()?.let { processIcon("Large Icon", it) }
 
-        // Extract Media/Style Images
         @Suppress("DEPRECATION")
         val picBackground = extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
         if (picBackground != null) {
             imagesMap["Style Big Picture"] = picBackground
-            metaMap["Style Big Picture"] = ResourceMeta("BITMAP", "Raw Parcelable", picBackground.width, picBackground.height, "${picBackground.byteCount/1024} KB")
+            metaMap["Style Big Picture"] = ResourceMeta("BITMAP", "Raw Parcelable", picBackground.width, picBackground.height, "${picBackground.byteCount / 1024} KB")
         }
 
-        // 4. Extract HyperIsland Images
         val picsBundle = extras.getBundle("miui.focus.pics")
         if (picsBundle != null) {
             for (key in picsBundle.keySet()) {
@@ -70,7 +72,6 @@ object NotificationParser {
             }
         }
 
-        // 5. Actions (Buttons)
         val actionsList = notif.actions?.mapIndexed { index, action ->
             val iconKey = "Action $index Icon"
             processIcon(iconKey, action.getIcon())
@@ -82,7 +83,6 @@ object NotificationParser {
             )
         } ?: emptyList()
 
-        // 6. Style Extras
         val styleInfo = mutableMapOf<String, String>()
         if (styleSimpleName == "MediaStyle" || styleSimpleName == "DecoratedMediaCustomViewStyle") {
             @Suppress("DEPRECATION")
@@ -97,10 +97,19 @@ object NotificationParser {
             }
         }
 
+        // Check all Xiaomi HyperOS Focus / HyperIsland payload keys
+        val rawHyperPayload = extras.getString("miui.focus.param")
+            ?: extras.getString("miui.focus.param.media")
+            ?: extras.getString("miui.focus.param.custom")
+            ?: if (picsBundle != null || extras.containsKey("miui.focus.rv")) {
+                "{\"type\": \"HyperIsland Focus Event\", \"hasPics\": ${picsBundle != null}, \"hasCustomView\": ${extras.containsKey("miui.focus.rv")}}"
+            } else null
+
         val inspected = InspectedNotification(
-            key = "${sbn.packageName}_${sbn.postTime}_${UUID.randomUUID().toString().take(4)}",
+            key = "${sbn.packageName}_${sbn.id}_${sbn.postTime}_${UUID.randomUUID().toString().take(4)}",
             id = sbn.id,
             packageName = sbn.packageName,
+            appName = appName,
             postTime = sbn.postTime,
             title = title,
             content = content,
@@ -109,16 +118,17 @@ object NotificationParser {
             contentIntent = describePendingIntent(notif.contentIntent),
             actions = actionsList,
             styleExtras = styleInfo,
-            hyperJson = tryFormatJson(extras.getString("miui.focus.param")),
+            hyperJson = tryFormatJson(rawHyperPayload),
             imagePaths = emptyMap(),
-            resourceMeta = metaMap // [NEW] Attach metadata
+            resourceMeta = metaMap
         )
 
+        Log.d(TAG, "Parsed notification: ${sbn.packageName} id=${sbn.id} title='$title' isHyper=${rawHyperPayload != null}")
         return Pair(inspected, imagesMap)
     }
 
-    private fun extractIconMeta(context: Context, icon: Icon): ResourceMeta {
-        val typeStr = when(icon.type) {
+    private fun extractIconMeta(icon: Icon): ResourceMeta {
+        val typeStr = when (icon.type) {
             Icon.TYPE_BITMAP -> "BITMAP"
             Icon.TYPE_RESOURCE -> "RESOURCE"
             Icon.TYPE_DATA -> "DATA"
@@ -127,34 +137,31 @@ object NotificationParser {
             else -> "UNKNOWN (${icon.type})"
         }
 
-        var sourceStr = "Unknown"
-
-        if (icon.type == Icon.TYPE_RESOURCE) {
-            // Try to resolve resource name (e.g., com.example:drawable/ic_icon)
-            sourceStr = try {
-                val pkg = icon.resPackage
-                val id = icon.resId
-                // We can't easily get the name without the other app's resources,
-                // but we can show the package and ID
-                "$pkg (ID: $id)"
-            } catch (e: Exception) { "Res ID: ${icon.resId}" }
+        val sourceStr = if (icon.type == Icon.TYPE_RESOURCE) {
+            try {
+                "${icon.resPackage} (ID: ${icon.resId})"
+            } catch (e: Exception) {
+                "Res ID: ${icon.resId}"
+            }
         } else if (icon.type == Icon.TYPE_URI) {
-            sourceStr = icon.uri.toString()
+            icon.uri.toString()
+        } else {
+            "Memory"
         }
 
         return ResourceMeta(typeStr, sourceStr, 0, 0, "Unknown")
     }
 
-    private fun describePendingIntent(pi: PendingIntent?): String {
-        return pi?.toString() ?: "None"
-    }
+    private fun describePendingIntent(pi: PendingIntent?): String = pi?.toString() ?: "None"
 
-    private fun tryFormatJson(json: String?): String? {
-        if (json == null) return null
+    private fun tryFormatJson(jsonStr: String?): String? {
+        if (jsonStr == null) return null
         return try {
-            val element = jsonPretty.parseToJsonElement(json)
-            jsonPretty.encodeToString(JsonObject.serializer(), element as JsonObject)
-        } catch (e: Exception) { json }
+            val element = jsonPretty.parseToJsonElement(jsonStr)
+            jsonPretty.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), element)
+        } catch (e: Exception) {
+            jsonStr
+        }
     }
 
     private fun getIconFromBundle(bundle: Bundle, key: String): Icon? {
@@ -176,6 +183,8 @@ object NotificationParser {
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
             bitmap
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            null
+        }
     }
 }

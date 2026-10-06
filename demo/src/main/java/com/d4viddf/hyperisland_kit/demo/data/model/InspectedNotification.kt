@@ -1,4 +1,4 @@
-package com.d4viddf.hyperisland_kit.demo
+package com.d4viddf.hyperisland_kit.demo.data.model
 
 import kotlinx.serialization.Serializable
 
@@ -7,24 +7,25 @@ data class InspectedNotification(
     val key: String,
     val id: Int,
     val packageName: String,
+    val appName: String = "",
     val postTime: Long,
     val title: String,
     val content: String,
 
-    // --- Detailed Info ---
+    // Detailed Info
     val templateStyle: String?,
     val isOngoing: Boolean,
     val contentIntent: String?,
     val actions: List<InspectedAction>,
     val styleExtras: Map<String, String>,
 
-    // --- HyperIsland ---
+    // HyperIsland Payload
     val hyperJson: String?,
 
-    // --- Assets ---
-    val imagePaths: Map<String, String> = emptyMap(), // Paths to local saved PNGs
+    // Local Asset Paths
+    val imagePaths: Map<String, String> = emptyMap(),
 
-    // [NEW] Metadata about the original resources
+    // Resource Metadata
     val resourceMeta: Map<String, ResourceMeta> = emptyMap()
 )
 
@@ -37,9 +38,9 @@ data class InspectedAction(
 
 @Serializable
 data class ResourceMeta(
-    val type: String,       // e.g., "RESOURCE", "URI", "BITMAP"
-    val source: String,     // e.g., "com.android.systemui:drawable/ic_check" or "content://..."
+    val type: String,
+    val source: String,
     val width: Int,
     val height: Int,
-    val fileSize: String    // Estimated size in KB
+    val fileSize: String
 )

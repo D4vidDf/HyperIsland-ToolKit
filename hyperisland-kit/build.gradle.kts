@@ -1,16 +1,18 @@
+import com.android.build.api.dsl.LibraryExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.vanniktech.maven.publish") version "0.35.0" // Use a recent version
 
 }
-android {
+
+extensions.configure<LibraryExtension> {
 
     namespace = "io.github.d4viddf.hyperisland_kit"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -36,15 +38,18 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
 mavenPublishing {
 
 
-    coordinates("io.github.d4viddf", "hyperisland_kit", "0.4.4")
+    coordinates("io.github.d4viddf", "hyperisland_kit", "0.4.5")
 
     pom {
         name = "HyperIsland ToolKit"

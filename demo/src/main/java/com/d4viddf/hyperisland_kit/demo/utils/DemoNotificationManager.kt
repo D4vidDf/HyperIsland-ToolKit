@@ -1,4 +1,4 @@
-package com.d4viddf.hyperisland_kit.demo
+package com.d4viddf.hyperisland_kit.demo.utils
 
 import android.Manifest
 import android.app.Notification
@@ -25,15 +25,17 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
-// Ensure you have: implementation "androidx.media:media:1.6.0"
 import androidx.media.app.NotificationCompat.MediaStyle
+import com.d4viddf.hyperisland_kit.demo.DemoApplication
+import com.d4viddf.hyperisland_kit.demo.MainActivity
+import com.d4viddf.hyperisland_kit.demo.R
+import com.d4viddf.hyperisland_kit.demo.data.service.NotificationActionReceiver
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.*
 import java.util.concurrent.TimeUnit
 
-// --- Resource Keys ---
 private const val PIC_KEY_ICON = "icon_main"
 private const val PIC_KEY_COVER = "cover_image"
 private const val PIC_KEY_APP_OPEN = "app_open_pic"
@@ -57,10 +59,8 @@ private const val ACTION_KEY_TEST_2 = "test_2"
 
 object DemoNotificationManager {
 
-    // Keep a reference to prevent GC
     private var mediaSession: MediaSessionCompat? = null
 
-    // --- Helpers ---
     private fun hasNotificationPermission(context: Context): Boolean {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
@@ -142,11 +142,6 @@ object DemoNotificationManager {
         return output
     }
 
-
-    // ============================================================================================
-    // CONFIGURABLE DEMO
-    // ============================================================================================
-
     fun showConfigurableNotification(context: Context, timeout: Long, enableFloat: Boolean, isShowNotification: Boolean) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -163,11 +158,6 @@ object DemoNotificationManager {
         notify(context, "Configurable Demo", builder)
     }
 
-    // ============================================================================================
-    // OFFICIAL TEMPLATES (1-22)
-    // ============================================================================================
-
-    // 1. Weather
     fun showTemplate1_Weather(context: Context) {
         if (!hasNotificationPermission(context)) return
         val weatherIconKey = "weather_icon"
@@ -181,7 +171,6 @@ object DemoNotificationManager {
         notify(context, "Template 1: Weather", builder)
     }
 
-    // 2. Bill Payment
     fun showTemplate2_Payment(context: Context) {
         if (!hasNotificationPermission(context)) return
         val iconKey = "pay_icon"
@@ -196,7 +185,6 @@ object DemoNotificationManager {
         notify(context, "Template 2: Payment", builder)
     }
 
-    // 3. IM/Chat
     fun showTemplate3_Chat(context: Context) {
         if (!hasNotificationPermission(context)) return
         val avatarKey = "avatar_person"
@@ -214,7 +202,6 @@ object DemoNotificationManager {
         notify(context, "Template 3: Chat", builder)
     }
 
-    // 4. Taxi/Delivery
     fun showTemplate4_TaxiQueue(context: Context) {
         if (!hasNotificationPermission(context)) return
         val brandPic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -234,7 +221,6 @@ object DemoNotificationManager {
         notify(context, "Template 4: Taxi/Delivery", builder)
     }
 
-    // 5. Dining Queue
     fun showTemplate5_DiningQueue(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -248,7 +234,6 @@ object DemoNotificationManager {
         notify(context, "Template 5: Dining Queue", builder)
     }
 
-    // 6. Parking
     fun showTemplate6_Parking(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -263,7 +248,6 @@ object DemoNotificationManager {
         notify(context, "Template 6: Parking", builder)
     }
 
-    // 7. Upload
     fun showTemplate7_Upload(context: Context) {
         if (!hasNotificationPermission(context)) return
         val fileKey = "file_preview"
@@ -286,7 +270,6 @@ object DemoNotificationManager {
         notify(context, "Template 7: Upload", builder)
     }
 
-    // 8. Coupon
     fun showTemplate8_Coupon(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -304,7 +287,6 @@ object DemoNotificationManager {
         notify(context, "Template 8: Coupon", builder)
     }
 
-    // 9. Movie Ticket
     fun showTemplate9_Movie(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -320,7 +302,6 @@ object DemoNotificationManager {
         notify(context, "Template 9: Movie Ticket", builder)
     }
 
-    // 10. Pickup
     fun showTemplate10_Pickup(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -339,7 +320,6 @@ object DemoNotificationManager {
         notify(context, "Template 10: Pickup", builder)
     }
 
-    // 11. Sports/Timer
     fun showTemplate11_Sports(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -352,7 +332,6 @@ object DemoNotificationManager {
         notify(context, "Template 11: Sports", builder)
     }
 
-    // 12. Call
     fun showTemplate12_Call(context: Context) {
         if (!hasNotificationPermission(context)) return
         val avatarKey = "caller_avatar"
@@ -373,7 +352,6 @@ object DemoNotificationManager {
         notify(context, "Template 12: Call", builder)
     }
 
-    // 13. Recording
     fun showTemplate13_Recording(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -385,7 +363,6 @@ object DemoNotificationManager {
         notify(context, "Template 13: Recording", builder)
     }
 
-    // 14. Navigation
     fun showTemplate14_Navigation(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -397,7 +374,6 @@ object DemoNotificationManager {
         notify(context, "Template 14: Navigation", builder)
     }
 
-    // 15. Recorder
     fun showTemplate15_Recorder(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -410,7 +386,6 @@ object DemoNotificationManager {
         notify(context, "Template 15: Recorder", builder)
     }
 
-    // 16. Code
     fun showTemplate16_Code(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -422,7 +397,6 @@ object DemoNotificationManager {
         notify(context, "Template 16: Code", builder)
     }
 
-    // 17. Promo
     fun showTemplate17_Promo(context: Context) {
         if (!hasNotificationPermission(context)) return
         val action = HyperAction("buy", "Buy", null, createAppOpenIntent(context), 1, actionBgColor = "#FF3B30", titleColor = "#FFFFFF")
@@ -434,7 +408,6 @@ object DemoNotificationManager {
         notify(context, "Template 17: Promo", builder)
     }
 
-    // 18. File Request
     fun showTemplate18_FileRequest(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -448,7 +421,6 @@ object DemoNotificationManager {
         notify(context, "Template 18: File Request", builder)
     }
 
-    // 19. Cover Info
     fun showTemplate19_Cover(context: Context) {
         if (!hasNotificationPermission(context)) return
         val cover = HyperPicture(PIC_KEY_COVER, context, R.drawable.starry_pplaceholder)
@@ -462,7 +434,6 @@ object DemoNotificationManager {
         notify(context, "Template 19: Cover Info", builder)
     }
 
-    // 20. Data Usage
     fun showTemplate20_Data(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -474,7 +445,6 @@ object DemoNotificationManager {
         notify(context, "Template 20: Data Usage", builder)
     }
 
-    // 21. Game Download
     fun showTemplate21_Game(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -486,7 +456,6 @@ object DemoNotificationManager {
         notify(context, "Template 21: Game Download", builder)
     }
 
-    // 22. IoT
     fun showTemplate22_IoT(context: Context) {
         if (!hasNotificationPermission(context)) return
         val pic = HyperPicture(PIC_KEY_ICON, context, R.drawable.ic_launcher_foreground)
@@ -498,33 +467,17 @@ object DemoNotificationManager {
         notify(context, "Template 22: IoT", builder)
     }
 
-// ============================================================================================
-    // 23. Drag & Share Demo (MEDIA STYLE - STRICT JSON)
-    // ============================================================================================
-
     fun showTemplate23_DragShare(context: Context) {
         if (!hasNotificationPermission(context)) return
 
         val shareKey = "share_cover"
-        val urlToShare = "https://dev.mi.com/xiaomihyperos/documentation/detail?pId=2162"
-        val shareTitle = "Tech_Talk_Ep42.mp3"
-        val shareContent = "15.4 MB"
-
-        // 1. Prepare Assets
-        // We need a Bitmap for the MediaMetadata and the Drag Shadow
         val coverBitmap = getRoundedBitmap(context, R.drawable.ic_launcher_foreground, 32f)
-
-        // Wrap it in an Icon for the HyperIsland Picture Bundle
         val pic = HyperPicture(shareKey, Icon.createWithBitmap(coverBitmap))
 
-        // 2. Define Actions (Standard Media Actions)
         val prevAction = HyperAction("prev", "Prev", context, android.R.drawable.ic_media_rew, createAppOpenIntent(context), 1)
         val playAction = HyperAction("play", "Play", context, android.R.drawable.ic_media_pause, createAppOpenIntent(context), 1)
         val nextAction = HyperAction("next", "Next", context, android.R.drawable.ic_media_ff, createAppOpenIntent(context), 1)
 
-        // 3. Build the Resource Bundle (Pictures & Actions)
-        // We still use the builder to package the images/actions into the Bundle,
-        // but we WON'T use its JSON generation methods.
         val builder = HyperIslandNotification.Builder(context, "media_share", "Podcast")
             .setSmallWindowTarget("${context.packageName}.MainActivity")
             .addPicture(pic)
@@ -532,92 +485,21 @@ object DemoNotificationManager {
             .addAction(playAction)
             .addAction(nextAction)
 
-        // 4. Construct the STRICT JSON manually
-        // Media params must ONLY contain the island param with share data.
-        // Note: The key 'pic' refers to the key inside the Bundle (added via addPicture above).
-        // The library adds "miui.focus.pic_" prefix automatically in the bundle, so we match it here.
         val islandJson = "{" +
                 "    \"param_v2\": {" +
                 "        \"param_island\": {" +
                 "            \"shareData\": {" +
-                "               \"title\": \"音乐标题\",\n" +   // 拖拽及分享后卡片显示标题
-                "               \"pic\": \"xxx\",\n" +         // 媒体通知使用为封面图，无需设置
-                "               \"content\": \"分享内容\",\n" + // 拖拽及分享后卡片显示内容
-                "               \"shareContent\": \"https://i.y.qq.com/n2/m/musiclite/playsong/index.html?app_type=qmlite&songmid=003kva882toU7E\",\n" +                 // 分享链接
+                "               \"title\": \"Podcast Episode\",\n" +
+                "               \"pic\": \"xxx\",\n" +
+                "               \"content\": \"Share Content\",\n" +
+                "               \"shareContent\": \"https://github.com/D4vidDf/HyperIsland-ToolKit\",\n" +
                 "           }" +
                 "        }" +
                 "    }" +
-                "}";
+                "}"
 
-        // 5. Notify
         notifyMedia(context, "Tech Talk - Ep 42", coverBitmap, builder, islandJson)
     }
-
-    /**
-     * Helper for Media Notifications.
-     * Accepts the manually constructed 'mediaParams' JSON string.
-     */
-    private fun notifyMedia(
-        context: Context,
-        title: String,
-        albumArt: Bitmap,
-        builder: HyperIslandNotification,
-        mediaParamsJson: String
-    ) {
-        val notificationId = getUniqueNotificationId()
-
-        // 1. Initialize Media Session
-        if (mediaSession == null) {
-            mediaSession = MediaSessionCompat(context, "DemoMediaSession")
-        }
-
-        mediaSession?.let { session ->
-            session.setMetadata(
-                MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Demo Artist")
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
-                    .build()
-            )
-
-            val stateBuilder = PlaybackStateCompat.Builder()
-                .setActions(
-                    PlaybackStateCompat.ACTION_PLAY or
-                            PlaybackStateCompat.ACTION_PAUSE or
-                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                )
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
-            session.setPlaybackState(stateBuilder.build())
-            session.isActive = true
-        }
-
-        // 2. Build Notification
-        val notificationBuilder = NotificationCompat.Builder(context, DemoApplication.DEMO_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(title)
-            .setContentText("Drag to share")
-            .setLargeIcon(albumArt)
-            .setContentIntent(createAppOpenIntent(context))
-            .setOngoing(true)
-            .setAutoCancel(false)
-            .setStyle(
-                MediaStyle()
-                    .setMediaSession(mediaSession?.sessionToken)
-                    .setShowActionsInCompactView(0, 1, 2)
-            )
-            // Inject the Bitmaps and Actions from the builder
-            .addExtras(builder.buildResourceBundle())
-
-        // 3. Inject the Strict JSON
-        notificationBuilder.extras.putString("miui.focus.param.media", mediaParamsJson)
-
-        context.getSystemService(NotificationManager::class.java).notify(notificationId, notificationBuilder.build())
-    }
-
-    // ============================================================================================
-    // ADVANCED CUSTOMIZATION DEMOS
-    // ============================================================================================
 
     fun showRawColoredTextButtons(context: Context) {
         if (!hasNotificationPermission(context)) return
@@ -673,10 +555,6 @@ object DemoNotificationManager {
             .setBigIslandInfo(left = ImageTextInfoLeft(type=1, picInfo=PicInfo(type=1, pic="miui.focus.pic_$PIC_KEY_ICON"), textInfo=TextInfo(title="Custom BG")))
         notify(context, "Bg Info", builder)
     }
-
-    // ============================================================================================
-    // STANDARD DEMOS
-    // ============================================================================================
 
     fun showAppOpenNotification(context: Context) {
         if (!hasNotificationPermission(context)) return
@@ -838,10 +716,6 @@ object DemoNotificationManager {
         notify(context, "Multi Action", builder)
     }
 
-    // ============================================================================================
-    // FOCUS DIY / MUSIC PLAYER
-    // ============================================================================================
-
     fun showFocusDiyNotification(context: Context) {
         if (!hasNotificationPermission(context)) return
         val remoteView = RemoteViews(context.packageName, R.layout.layout_focus_diy)
@@ -886,10 +760,6 @@ object DemoNotificationManager {
         notifyCustom(context, builder)
     }
 
-    // ============================================================================================
-    // NOTIFICATION HELPERS
-    // ============================================================================================
-
     private fun notify(context: Context, title: String, builder: HyperIslandNotification) {
         val notificationId = getUniqueNotificationId()
         val notification = NotificationCompat.Builder(context, DemoApplication.DEMO_CHANNEL_ID)
@@ -914,11 +784,19 @@ object DemoNotificationManager {
         context.getSystemService(NotificationManager::class.java).notify(notificationId, notification)
     }
 
-    private fun notifyMedia(context: Context, title: String, albumArt: Bitmap, builder: HyperIslandNotification) {
+    private fun notifyMedia(
+        context: Context,
+        title: String,
+        albumArt: Bitmap,
+        builder: HyperIslandNotification,
+        mediaParamsJson: String
+    ) {
         val notificationId = getUniqueNotificationId()
+
         if (mediaSession == null) {
             mediaSession = MediaSessionCompat(context, "DemoMediaSession")
         }
+
         mediaSession?.let { session ->
             session.setMetadata(
                 MediaMetadataCompat.Builder()
@@ -927,8 +805,14 @@ object DemoNotificationManager {
                     .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
                     .build()
             )
+
             val stateBuilder = PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                .setActions(
+                    PlaybackStateCompat.ACTION_PLAY or
+                            PlaybackStateCompat.ACTION_PAUSE or
+                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                )
                 .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
             session.setPlaybackState(stateBuilder.build())
             session.isActive = true
@@ -937,7 +821,7 @@ object DemoNotificationManager {
         val notificationBuilder = NotificationCompat.Builder(context, DemoApplication.DEMO_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
-            .setContentText("Drag island to share")
+            .setContentText("Drag to share")
             .setLargeIcon(albumArt)
             .setContentIntent(createAppOpenIntent(context))
             .setOngoing(true)
@@ -949,9 +833,8 @@ object DemoNotificationManager {
             )
             .addExtras(builder.buildResourceBundle())
 
-        val standardJson = builder.buildJsonParam()
-        val mediaJson = "{\"param_v2\":$standardJson}"
-        notificationBuilder.extras.putString("miui.focus.param.media", standardJson)
+        notificationBuilder.extras.putString("miui.focus.param.media", mediaParamsJson)
+
         context.getSystemService(NotificationManager::class.java).notify(notificationId, notificationBuilder.build())
     }
 
@@ -959,12 +842,8 @@ object DemoNotificationManager {
         val intent = Intent(context, NotificationActionReceiver::class.java).apply { this.action = action }
         return PendingIntent.getBroadcast(context, action.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
+}
 
-} // --- End of Object ---
-
-/**
- * Creates an Icon from a drawable resource with rounded corners.
- */
 private fun createRoundedBitmapIcon(context: Context, drawableResId: Int, cornerRadius: Float = 24f): Icon {
     val drawable = ContextCompat.getDrawable(context, drawableResId) ?: return Icon.createWithResource(context, drawableResId)
     val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 128
