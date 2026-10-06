@@ -74,6 +74,7 @@ fun DemoListScreen(
         item { DemoCard("20. Data Usage", "IconTextInfo + Linear Progress", onClick = { DemoNotificationManager.showTemplate20_Data(context) }) }
         item { DemoCard("21. Game Download", "ChatInfo + Linear Progress", onClick = { DemoNotificationManager.showTemplate21_Game(context) }) }
         item { DemoCard("22. IoT Status", "IconTextInfo + Progress", onClick = { DemoNotificationManager.showTemplate22_IoT(context) }) }
+        item { DemoCard("23. Drag & share", "hold the notification to share", onClick = { DemoNotificationManager.showTemplate23_DragShare(context) }) }
 
         // --- SECTION 2: ADVANCED CUSTOMIZATION ---
         item { Text("Advanced Customization", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp)) }

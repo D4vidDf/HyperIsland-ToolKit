@@ -866,12 +866,13 @@ class HyperIslandNotification private constructor(
     private fun HyperAction.toTextButtonInfo(): TextButtonInfo {
         val iconKey = if (this.icon != null) PIC_PREFIX + this.key else null
         return TextButtonInfo(
-            type = 0,
+            type = 1,
             actionTitle = this.title?.toString() ?: "",
             actionIcon = iconKey, actionIconDark = iconKey,
             actionBgColor = this.actionBgColor, actionBgColorDark = this.actionBgColorDark ?: this.actionBgColor,
             actionTitleColor = this.titleColor, actionTitleColorDark = this.titleColorDark ?: this.titleColor,
-            actionIntentType = this.actionIntentType, actionIntent = ACTION_PREFIX + this.key
+            actionIntentType = this.actionIntentType, actionIntent = ACTION_PREFIX + this.key,
+            action = ACTION_PREFIX + this.key
         )
     }
 
