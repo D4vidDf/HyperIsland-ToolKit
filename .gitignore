@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+/demo/release/demo-release.aab
+/demo/release/demo-release.apk
+/demo/release/baselineProfiles/0/demo-release.dm
+/demo/release/baselineProfiles/1/demo-release.dm
+/.idea/deviceManager.xml
+/demo/release/output-metadata.json
+/.idea/inspectionProfiles/Project_Default.xml
