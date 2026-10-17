@@ -3,6 +3,7 @@ package com.d4viddf.hyperisland_kit.demo.data.service
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -10,6 +11,7 @@ import com.d4viddf.hyperisland_kit.demo.data.parser.NotificationParser
 import com.d4viddf.hyperisland_kit.demo.data.repository.NotificationLogRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +24,18 @@ class HyperIslandListenerService : NotificationListenerService() {
 
         private val _isConnected = MutableStateFlow(false)
         val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+
+        fun isPermissionGranted(context: Context): Boolean {
+            val listeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+            return listeners != null && listeners.contains(context.packageName)
+        }
+
+        fun ensureConnected(context: Context) {
+            if (isPermissionGranted(context) && !_isConnected.value) {
+                Log.d(TAG, "Permission is granted but listener is disconnected. Requesting auto-reconnect...")
+                requestReconnect(context)
+            }
+        }
 
         fun requestReconnect(context: Context) {
             try {
@@ -60,7 +74,14 @@ class HyperIslandListenerService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         _isConnected.value = false
-        Log.d(TAG, "NotificationListenerService DISCONNECTED")
+        Log.w(TAG, "NotificationListenerService DISCONNECTED by system! Scheduling auto-rebind in 1s...")
+
+        scope.launch {
+            delay(1000)
+            if (isPermissionGranted(this@HyperIslandListenerService)) {
+                requestReconnect(this@HyperIslandListenerService)
+            }
+        }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {

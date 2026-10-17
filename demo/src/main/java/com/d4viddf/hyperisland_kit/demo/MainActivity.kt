@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.d4viddf.hyperisland_kit.demo.data.service.HyperIslandListenerService
 import com.d4viddf.hyperisland_kit.demo.ui.navigation.AppNavigation
 import com.d4viddf.hyperisland_kit.demo.ui.navigation.NavigationDestination
 import com.d4viddf.hyperisland_kit.demo.ui.theme.HyperIslandToolKitTheme
@@ -39,5 +40,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        HyperIslandListenerService.ensureConnected(this)
     }
 }

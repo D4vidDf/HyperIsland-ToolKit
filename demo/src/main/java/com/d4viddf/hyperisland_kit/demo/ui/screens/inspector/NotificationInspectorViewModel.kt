@@ -106,7 +106,11 @@ class NotificationInspectorViewModel : ViewModel() {
 
     fun checkPermission(context: Context) {
         val listeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-        _hasPermission.value = listeners != null && listeners.contains(context.packageName)
+        val granted = listeners != null && listeners.contains(context.packageName)
+        _hasPermission.value = granted
+        if (granted) {
+            com.d4viddf.hyperisland_kit.demo.data.service.HyperIslandListenerService.ensureConnected(context)
+        }
         refreshSaved(context)
     }
 
