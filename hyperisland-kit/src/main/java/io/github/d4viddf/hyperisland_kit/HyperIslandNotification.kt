@@ -90,6 +90,9 @@ data class HyperPicture(
 ) {
     constructor(key: String, context: Context, drawableRes: Int) : this(key, Icon.createWithResource(context, drawableRes))
     constructor(key: String, bitmap: Bitmap) : this(key, Icon.createWithBitmap(bitmap))
+
+    /** Returns the full picture reference string formatted with system prefix `miui.focus.pic_`. */
+    val prefixedKey: String get() = if (key.startsWith(PIC_PREFIX)) key else PIC_PREFIX + key
 }
 
 private fun createTransparentIcon(context: Context): Icon {
@@ -451,12 +454,13 @@ class HyperIslandNotification private constructor(
      * @param title Main headline.
      * @param content Main body text.
      */
-    fun setAnimTextInfo(picKey: String, title: String, content: String? = null, isAnimation: Boolean = false) = apply {
+    fun setAnimTextInfo(picKey: String, title: String, content: String? = null, isAnimation: Boolean = false, timerInfo: TimerInfo? = null) = apply {
         clearOtherTemplates()
         this.animTextInfo = AnimTextInfo(
             animIconInfo = AnimIconInfo(src = resolvePicSource(picKey), type = if (isAnimation) 3 else 0),
             title = title,
-            content = content
+            content = content,
+            timerInfo = timerInfo
         )
     }
 
@@ -584,6 +588,7 @@ class HyperIslandNotification private constructor(
         centerText: TextInfo? = null,
         pic: PicInfo? = null,
         progressText: ProgressTextInfo? = null,
+        sameWidthDigitInfo: SameWidthDigitInfo? = null
     ) = apply {
         ensureParamIsland()
         val fixedLeft = left?.copy(picInfo = prefixPicInfo(left.picInfo))
@@ -595,6 +600,7 @@ class HyperIslandNotification private constructor(
             bigIslandArea = BigIslandArea(
                 imageTextInfoLeft = fixedLeft,
                 imageTextInfoRight = fixedRight,
+                sameWidthDigitInfo = sameWidthDigitInfo,
                 textInfo = centerText,
                 picInfo = fixedPic,
                 progressTextInfo = progressText,

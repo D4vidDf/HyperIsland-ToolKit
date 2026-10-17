@@ -838,6 +838,37 @@ object DemoNotificationManager {
         context.getSystemService(NotificationManager::class.java).notify(notificationId, notificationBuilder.build())
     }
 
+    fun showNativeSoundRecorderDemo(context: Context) {
+        if (!hasNotificationPermission(context)) return
+
+        val waveSmall = HyperPicture("voiceWaveSmall", context, R.drawable.videocam)
+        val waveBig = HyperPicture("voiceWaveBig", context, R.drawable.videocam)
+
+        val act1 = HyperAction("1", "Pause", Icon.createWithResource(context, R.drawable.rounded_pause_24), getActionIntent(context, "ACTION_PAUSE"), 0)
+        val act2 = HyperAction("2", "Stop", Icon.createWithResource(context, R.drawable.rounded_close_24), getActionIntent(context, "ACTION_STOP"), 0)
+
+        val now = System.currentTimeMillis()
+        val timer = TimerInfo(timerType = 1, timerWhen = now, timerTotal = 0L, timerSystemCurrent = now)
+
+        val builder = HyperIslandNotification.Builder(context, "audio_recording", "Grabando")
+            .addPicture(waveSmall)
+            .addPicture(waveBig)
+            .addAction(act1)
+            .addAction(act2)
+            .setScene("recorder")
+            .setAnimTextInfo(waveBig.key, title = "Grabando", content = "Sound Recorder", isAnimation = true, timerInfo = timer)
+            .setBigIslandInfo(
+                left = ImageTextInfoLeft(
+                    type = 1,
+                    picInfo = PicInfo(type = 2, pic = waveSmall.key, loop = true, autoplay = true)
+                ),
+                sameWidthDigitInfo = SameWidthDigitInfo(timerInfo = timer)
+            )
+            .setSmallIsland(waveSmall.key)
+
+        notify(context, "Official Xiaomi Sound Recorder", builder)
+    }
+
     private fun getActionIntent(context: Context, action: String): PendingIntent {
         val intent = Intent(context, NotificationActionReceiver::class.java).apply { this.action = action }
         return PendingIntent.getBroadcast(context, action.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

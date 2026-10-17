@@ -54,6 +54,7 @@ class DemoListViewModel : ViewModel() {
         DemoItem("t21", "21. Game Download", "ChatInfo + Linear Progress", DemoCategory.TEMPLATES) { DemoNotificationManager.showTemplate21_Game(it) },
         DemoItem("t22", "22. IoT Status", "IconTextInfo + Progress", DemoCategory.TEMPLATES) { DemoNotificationManager.showTemplate22_IoT(it) },
         DemoItem("t23", "23. Drag & Share", "Hold notification to drag and share", DemoCategory.TEMPLATES, isRecommended = true) { DemoNotificationManager.showTemplate23_DragShare(it) },
+        DemoItem("t24", "24. Official Sound Recorder", "Native Xiaomi Sound Recorder payload with voiceWave animation & timer.", DemoCategory.TEMPLATES, isRecommended = true) { DemoNotificationManager.showNativeSoundRecorderDemo(it) },
 
         // Customization
         DemoItem("c1", "Colored Text Buttons", "Text-only actions with custom background colors.", DemoCategory.CUSTOMIZATION) { DemoNotificationManager.showRawColoredTextButtons(it) },
